@@ -99,7 +99,7 @@ const App: React.FC = () => {
     Swal.fire({
       title: 'เข้าสู่ระบบสำหรับครู',
       input: 'password',
-      inputPlaceholder: 'รหัสผ่าน 2521',
+      inputPlaceholder: '*****',
       showCancelButton: true,
       confirmButtonText: 'เข้าสู่ระบบ',
       inputValidator: (value) => {
