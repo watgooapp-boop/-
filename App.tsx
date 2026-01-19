@@ -24,11 +24,16 @@ const App: React.FC = () => {
 
   const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const fetchData = useCallback(async (silent = false) => {
-    if (!silent) setIsLoading(true);
+    if (!silent) {
+      setIsLoading(true);
+      setFetchError(null);
+    }
     try {
       const response = await fetch(APPS_SCRIPT_URL);
+      if (!response.ok) throw new Error("Network response was not ok");
       const data = await response.json();
       
       if (data.students) {
@@ -74,8 +79,9 @@ const App: React.FC = () => {
           }));
         setSubmissions(filteredSubs);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Fetch error: ", e);
+      setFetchError(e.message);
     } finally {
       setIsLoading(false);
     }
@@ -93,7 +99,7 @@ const App: React.FC = () => {
     Swal.fire({
       title: 'เข้าสู่ระบบสำหรับครู',
       input: 'password',
-      inputPlaceholder: 'รหัสผ่าน *****',
+      inputPlaceholder: 'รหัสผ่าน 2521',
       showCancelButton: true,
       confirmButtonText: 'เข้าสู่ระบบ',
       inputValidator: (value) => {
@@ -111,9 +117,20 @@ const App: React.FC = () => {
 
   const renderContent = () => {
     if (isLoading) return (
-      <div className="flex flex-col items-center justify-center py-20 opacity-50">
-        <i className="fas fa-circle-notch animate-spin text-4xl text-indigo-600 mb-4"></i>
-        <p className="font-bold text-indigo-900">กำลังเชื่อมต่อฐานข้อมูล Cloud...</p>
+      <div className="flex flex-col items-center justify-center py-32">
+        <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
+        <p className="font-bold text-indigo-900 animate-pulse">กำลังโหลดข้อมูลจาก Cloud...</p>
+      </div>
+    );
+
+    if (fetchError) return (
+      <div className="bg-white p-8 rounded-3xl shadow-sm border border-red-100 text-center max-w-md mx-auto my-20">
+        <i className="fas fa-exclamation-triangle text-red-500 text-4xl mb-4"></i>
+        <h3 className="text-xl font-bold text-gray-800 mb-2">ไม่สามารถเชื่อมต่อฐานข้อมูลได้</h3>
+        <p className="text-gray-500 mb-6 text-sm">กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือ Apps Script ของคุณ</p>
+        <button onClick={() => fetchData()} className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-indigo-700 transition-all">
+          <i className="fas fa-sync-alt mr-2"></i> ลองใหม่อีกครั้ง
+        </button>
       </div>
     );
 
@@ -168,8 +185,8 @@ const App: React.FC = () => {
           {renderContent()}
         </div>
       </main>
-      <footer className="bg-white border-t p-6 text-center text-gray-400 text-xs font-medium uppercase tracking-widest">
-        &copy; 2026 ระบบงานชุมนุม โรงเรียนหนองบัวแดงวิทยา • Cloud Sync Active
+      <footer className="bg-white border-t p-6 text-center text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em]">
+        &copy; 2026 ระบบงานชุมนุม โรงเรียนหนองบัวแดงวิทยา • All Rights Reserved
       </footer>
     </div>
   );
