@@ -1,0 +1,8 @@
+{
+  "name": "Chumnum Management System",
+  "description": "ระบบบริหารจัดการงานชุมนุม - บันทึกเวลาเรียนและจัดการงานนักเรียน",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
