@@ -234,11 +234,26 @@ const SubmissionTab: React.FC<SubmissionTabProps> = ({ students, assignments, su
             <div className="bg-slate-50 rounded-3xl p-6 border-2 border-dashed border-slate-200">
               {selectedAssignmentId ? (
                 <form onSubmit={submitWork} className="space-y-6">
-                  <div className="flex items-center gap-2 pb-4 border-b border-slate-200">
+                  <div className="flex flex-col gap-4 pb-4 border-b border-slate-200">
                     <div>
-                      <h4 className="font-bold text-gray-800 text-sm">{currentAssignment?.title}</h4>
-                      <p className="text-[10px] text-gray-400">ระบุข้อมูลหลักฐานเพื่อส่งงาน</p>
+                      <h4 className="font-black text-indigo-900 text-lg uppercase tracking-tight">{currentAssignment?.title}</h4>
+                      <p className="text-[10px] text-gray-400 font-bold uppercase">ระบุข้อมูลหลักฐานเพื่อส่งงาน</p>
                     </div>
+
+                    {/* ส่วนรายละเอียดที่ครูมอบหมาย */}
+                    {currentAssignment?.description && (
+                      <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl relative overflow-hidden group">
+                        <div className="absolute -right-2 -bottom-2 opacity-5 text-4xl text-indigo-900 rotate-12 group-hover:scale-110 transition-transform">
+                          <i className="fas fa-info-circle"></i>
+                        </div>
+                        <h5 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                          <i className="fas fa-chalkboard-teacher"></i> รายละเอียดที่ครูมอบหมาย
+                        </h5>
+                        <p className="text-sm text-indigo-900 whitespace-pre-wrap leading-relaxed font-medium">
+                          {currentAssignment.description}
+                        </p>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="space-y-6">
@@ -272,7 +287,7 @@ const SubmissionTab: React.FC<SubmissionTabProps> = ({ students, assignments, su
                           placeholder="วางลิงก์หลักฐานที่นี่"
                           value={submissionContent}
                           onChange={(e) => setSubmissionContent(e.target.value)}
-                          className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none text-sm font-medium"
+                          className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none text-sm font-medium shadow-sm"
                         />
                       ) : (
                         <div className="relative">
@@ -285,7 +300,7 @@ const SubmissionTab: React.FC<SubmissionTabProps> = ({ students, assignments, su
                           />
                           <label 
                             htmlFor="upload-input-submission"
-                            className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-200 bg-white rounded-2xl p-6 cursor-pointer hover:bg-indigo-50 transition-all min-h-[120px]"
+                            className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-200 bg-white rounded-2xl p-6 cursor-pointer hover:bg-indigo-50 transition-all min-h-[120px] shadow-sm"
                           >
                             <i className={`fas ${submissionContent ? 'fa-check-circle text-green-500' : 'fa-cloud-upload-alt text-indigo-300'} text-3xl mb-2`}></i>
                             <span className="text-xs font-bold text-indigo-900 text-center truncate w-full px-4">
@@ -306,7 +321,7 @@ const SubmissionTab: React.FC<SubmissionTabProps> = ({ students, assignments, su
                     <button 
                       type="submit"
                       disabled={isUploading}
-                      className={`w-full bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 ${isUploading ? 'opacity-70 cursor-wait' : 'hover:bg-indigo-700 active:scale-95'}`}
+                      className={`w-full bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 ${isUploading ? 'opacity-70 cursor-wait' : 'hover:bg-indigo-700 active:scale-95 shadow-indigo-100'}`}
                     >
                       {isUploading ? <><i className="fas fa-circle-notch animate-spin"></i> กำลังบันทึก...</> : <><i className="fas fa-paper-plane"></i> ส่งงาน</>}
                     </button>
