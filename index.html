@@ -13,52 +13,37 @@
         body { font-family: 'Sarabun', sans-serif; }
         [v-cloak] { display: none; }
 
-        /* การตั้งค่าสำหรับการพิมพ์ */
+        /* การตั้งค่าสำหรับการพิมพ์ที่รองรับ Google Chrome 100% */
         @media print {
             @page {
                 size: A4;
-                margin: 10mm;
+                margin: 15mm;
             }
-            html, body {
-                height: auto;
-                background-color: #fff;
+            /* ซ่อนทุกอย่างบนหน้าจอ */
+            body * {
+                visibility: hidden;
             }
-            /* ซ่อนทุกอย่างก่อน */
-            body > * {
-                display: none !important;
+            /* แสดงเฉพาะส่วนที่ต้องการพิมพ์ และลูกหลานของมัน */
+            #print-area-container, #print-area-container * {
+                visibility: visible;
             }
-            /* แสดงเฉพาะ root ที่มีเนื้อหา */
-            #root {
-                display: block !important;
-            }
-            /* ซ่อนทุกอย่างใน root ยกเว้นส่วนที่ต้องการพิมพ์ */
-            #root > *:not(.print-container-wrapper) {
-                display: none !important;
-            }
-            /* บังคับให้ส่วน Print Wrapper แสดงผล */
-            .print-container-wrapper {
-                display: block !important;
+            /* จัดตำแหน่งส่วนที่จะพิมพ์ให้เริ่มที่มุมซ้ายบน */
+            #print-area-container {
                 position: absolute;
-                top: 0;
                 left: 0;
-                width: 100% !important;
-            }
-            .print-only {
+                top: 0;
+                width: 100%;
                 display: block !important;
             }
             .page-break {
                 display: block;
                 page-break-after: always;
-                clear: both;
             }
-            /* ล้างการตั้งค่าพื้นหลังเพื่อให้สีแสดงผล */
+            /* บังคับให้สีและพื้นหลังแสดงผลใน PDF */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
-        }
-        .print-only {
-            display: none;
         }
     </style>
 <script type="importmap">
