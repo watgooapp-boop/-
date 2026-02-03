@@ -19,33 +19,39 @@
                 size: A4;
                 margin: 15mm;
             }
-            body { 
-                background: white !important; 
-                -webkit-print-color-adjust: exact; 
-                print-color-adjust: exact;
+            html, body {
+                width: 210mm;
+                height: 297mm;
+                background: white !important;
             }
-            nav, header, footer, button, .no-print, .swal2-container {
-                display: none !important;
-            }
-            #root {
+            nav, header, footer, button, .no-print, .swal2-container, #root {
                 display: none !important;
             }
             .print-only {
                 display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
                 width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            .page-break {
+                display: block;
+                page-break-after: always;
             }
             table {
                 width: 100%;
                 border-collapse: collapse;
-                margin-top: 20px;
             }
             th, td {
-                border: 1px solid #000 !important;
-                padding: 10px !important;
+                border: 1px solid black !important;
+                padding: 8px !important;
                 text-align: left;
             }
             th {
                 background-color: #f3f4f6 !important;
+                -webkit-print-color-adjust: exact;
             }
         }
         .print-only {
@@ -65,8 +71,8 @@
 </head>
 <body class="bg-slate-50">
     <div id="root"></div>
-    <div id="print-root" class="print-only"></div>
-    <!-- โหลด entry point เป็น module -->
+    <!-- ส่วนแสดงผลสำหรับพิมพ์โดยเฉพาะ -->
+    <div id="print-area" class="print-only"></div>
     <script type="module" src="./index.tsx"></script>
 </body>
 </html>
