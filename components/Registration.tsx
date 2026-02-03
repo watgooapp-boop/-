@@ -85,25 +85,35 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
     return a.id.localeCompare(b.id);
   });
 
-  // แบ่งข้อมูลนักเรียนเป็นหน้าละ 25 คน
-  const chunkArray = (arr: any[], size: number) => {
-    const chunks = [];
+  // แบ่งข้อมูลนักเรียนเป็นหน้าละ 25 คน และเติมแถวให้ครบ 25 แถวเสมอ
+  const getPagedData = (arr: any[], size: number) => {
+    const pages = [];
     for (let i = 0; i < arr.length; i += size) {
-      chunks.push(arr.slice(i, i + size));
+      const chunk = arr.slice(i, i + size);
+      // เติมข้อมูลว่างให้ครบ 25 แถว
+      const paddedChunk = [...chunk];
+      while (paddedChunk.length < size) {
+        paddedChunk.push(null); 
+      }
+      pages.push(paddedChunk);
     }
-    return chunks;
+    // ถ้าไม่มีข้อมูลเลย ให้สร้างหน้าว่าง 1 หน้าที่มี 25 แถว
+    if (pages.length === 0) {
+      pages.push(Array(size).fill(null));
+    }
+    return pages;
   };
 
-  const studentChunks = chunkArray(sortedStudentsForList, 25);
+  const pagedStudents = getPagedData(sortedStudentsForList, 25);
 
   const handlePrint = () => {
     window.print();
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 no-print">
+    <div className="w-full space-y-8 no-print">
       {/* Registration Form */}
-      <div className="bg-white rounded-3xl shadow-xl overflow-hidden border border-indigo-50">
+      <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-indigo-50">
         <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 p-8 text-white text-center">
           <h2 className="text-3xl font-black tracking-tight">ลงทะเบียนเข้าชุมนุม</h2>
           <p className="text-indigo-100 opacity-90 text-sm mt-2 font-medium uppercase tracking-widest">โรงเรียนหนองบัวแดงวิทยา</p>
@@ -173,8 +183,8 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
         </form>
       </div>
 
-      {/* Student List Grid (Web View) - กู้คืนเป็น 2 คอลัมน์ที่สวยงาม */}
-      <div className="bg-white p-8 rounded-3xl shadow-sm border border-indigo-50">
+      {/* Student List Grid (Web View) - เต็มหน้าจอและ 2 คอลัมน์ */}
+      <div className="w-full bg-white p-8 rounded-3xl shadow-sm border border-indigo-50">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-indigo-50 pb-6 gap-6">
           <div>
             <h3 className="text-xl font-black text-indigo-900 flex items-center gap-3">
@@ -191,7 +201,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
           </button>
         </div>
 
-        <div className="max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-indigo-100">
+        <div className="max-h-[800px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-indigo-100">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {sortedStudentsForList.map(student => (
               <div key={student.id} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border-2 border-transparent hover:border-indigo-100 hover:bg-white transition-all shadow-sm group">
@@ -217,7 +227,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
       {/* Modal Preview - แสดงตัวอย่างก่อนพิมพ์ */}
       {showPreview && (
         <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-5xl max-h-[90vh] rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl">
+          <div className="bg-white w-full max-w-5xl h-[95vh] rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl">
             <div className="bg-white px-8 py-6 border-b flex justify-between items-center">
               <h2 className="text-xl font-black text-slate-800 tracking-tight">ตัวอย่างก่อนพิมพ์รายงาน (A4)</h2>
               <button onClick={() => setShowPreview(false)} className="w-10 h-10 flex items-center justify-center bg-slate-100 text-slate-400 hover:text-red-500 rounded-xl transition-all">
@@ -226,40 +236,40 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
             </div>
             
             <div className="flex-grow overflow-y-auto p-8 bg-slate-200/50">
-              {studentChunks.map((chunk, chunkIdx) => (
-                <div key={chunkIdx} className={`bg-white p-12 mb-8 shadow-xl max-w-[210mm] mx-auto rounded-sm border border-slate-300`}>
-                  <div className="text-center mb-8">
-                    <img src="https://img5.pic.in.th/file/secure-sv1/nw_logo-removebg.png" alt="logo" className="h-20 mx-auto mb-4" />
-                    <h1 className="text-xl font-bold text-gray-900">รายงานรายชื่อนักเรียนลงทะเบียนเข้าชุมนุม</h1>
-                    <h2 className="text-base font-bold text-gray-700">โรงเรียนหนองบัวแดงวิทยา</h2>
-                    <div className="flex justify-between items-end mt-4 text-xs text-gray-600 border-b-2 border-black pb-2">
+              {pagedStudents.map((chunk, chunkIdx) => (
+                <div key={chunkIdx} className={`bg-white mb-10 shadow-xl mx-auto rounded-sm border border-slate-300`} style={{ width: '210mm', height: '297mm', padding: '15mm 20mm', boxSizing: 'border-box' }}>
+                  <div className="text-center mb-6">
+                    <img src="https://img5.pic.in.th/file/secure-sv1/nw_logo-removebg.png" alt="logo" className="h-14 mx-auto mb-3" />
+                    <h1 className="text-lg font-bold text-gray-900">รายงานรายชื่อนักเรียนลงทะเบียนเข้าชุมนุม</h1>
+                    <h2 className="text-sm font-bold text-gray-700">โรงเรียนหนองบัวแดงวิทยา</h2>
+                    <div className="flex justify-between items-end mt-4 text-[10px] text-gray-600 border-b border-black pb-1">
                       <p className="font-bold">กิจกรรมพัฒนาผู้เรียน</p>
-                      <p>ข้อมูล ณ วันที่ {new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                      <p>วันที่ {new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
                     </div>
                   </div>
                   
-                  <table className="w-full text-xs border-collapse border border-black">
+                  <table className="w-full text-[10pt] border-collapse border border-black">
                     <thead>
                       <tr className="bg-gray-100">
-                        <th className="border border-black px-3 py-2 text-center w-12 font-bold">ลำดับ</th>
-                        <th className="border border-black px-3 py-2 text-center w-28 font-bold">รหัสประจำตัว</th>
-                        <th className="border border-black px-3 py-2 text-left font-bold">ชื่อ-นามสกุล</th>
-                        <th className="border border-black px-3 py-2 text-center w-24 font-bold">ชั้น/ห้อง</th>
+                        <th className="border border-black px-2 py-1 text-center w-10 font-bold">ลำดับ</th>
+                        <th className="border border-black px-2 py-1 text-center w-24 font-bold">รหัสประจำตัว</th>
+                        <th className="border border-black px-2 py-1 text-left font-bold">ชื่อ-นามสกุล</th>
+                        <th className="border border-black px-2 py-1 text-center w-20 font-bold">ชั้น/ห้อง</th>
                       </tr>
                     </thead>
                     <tbody>
                       {chunk.map((s, idx) => (
-                        <tr key={s.id} className="hover:bg-slate-50">
-                          <td className="border border-black px-3 py-1.5 text-center">{chunkIdx * 25 + idx + 1}</td>
-                          <td className="border border-black px-3 py-1.5 text-center font-bold">{s.id}</td>
-                          <td className="border border-black px-3 py-1.5 font-bold">{s.name}</td>
-                          <td className="border border-black px-3 py-1.5 text-center">{s.level}/{s.room}</td>
+                        <tr key={idx} style={{ height: '8.5mm' }}>
+                          <td className="border border-black px-2 py-0 text-center">{s ? (chunkIdx * 25 + idx + 1) : ''}</td>
+                          <td className="border border-black px-2 py-0 text-center font-bold">{s ? s.id : ''}</td>
+                          <td className="border border-black px-2 py-0 font-bold">{s ? s.name : ''}</td>
+                          <td className="border border-black px-2 py-0 text-center">{s ? `${s.level}/${s.room}` : ''}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
-                  <div className="mt-4 text-right text-[10px] text-gray-500 font-bold">
-                    หน้าที่ {chunkIdx + 1} จาก {studentChunks.length} | จำนวนนักเรียนทั้งหมด {students.length} ราย
+                  <div className="mt-4 text-right text-[8pt] text-gray-500 font-bold">
+                    หน้า {chunkIdx + 1} จาก {pagedStudents.length} | รวมทั้งสิ้น {students.length} คน
                   </div>
                 </div>
               ))}
@@ -277,49 +287,51 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
 
       {/* เนื้อหาที่จะพิมพ์จริง (Hoisted for visibility technique) */}
       <div id="print-area-container" style={{ display: 'none' }}>
-        {studentChunks.map((chunk, chunkIdx) => (
+        {pagedStudents.map((chunk, chunkIdx) => (
           <div 
             key={`print-page-${chunkIdx}`} 
-            className={`page-break ${chunkIdx === studentChunks.length - 1 ? 'last-page' : ''}`}
-            style={{ 
-              padding: '10mm 5mm', 
-              backgroundColor: '#ffffff', 
-              minHeight: '277mm',
-              boxSizing: 'border-box'
-            }}
+            className={`page-break ${chunkIdx === pagedStudents.length - 1 ? 'last-page' : ''}`}
           >
-            <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-              <img src="https://img5.pic.in.th/file/secure-sv1/nw_logo-removebg.png" style={{ height: '85px', marginBottom: '15px' }} />
-              <h1 style={{ fontSize: '18pt', fontWeight: 'bold', margin: '0', color: '#000000' }}>รายงานรายชื่อนักเรียนลงทะเบียนเข้าชุมนุม</h1>
-              <h2 style={{ fontSize: '14pt', fontWeight: 'bold', margin: '5px 0', color: '#000000' }}>โรงเรียนหนองบัวแดงวิทยา</h2>
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #000000', paddingBottom: '8px', marginTop: '15px' }}>
-                <span style={{ fontWeight: 'bold', fontSize: '12pt', color: '#000000' }}>กิจกรรมพัฒนาผู้เรียน</span>
-                <span style={{ fontSize: '11pt', color: '#000000' }}>วันที่ {new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <img src="https://img5.pic.in.th/file/secure-sv1/nw_logo-removebg.png" style={{ height: '60px', margin: '0 auto 10px auto', display: 'block' }} />
+              <h1 style={{ fontSize: '14pt', fontWeight: 'bold', margin: '0', color: '#000000' }}>รายงานรายชื่อนักเรียนลงทะเบียนเข้าชุมนุม</h1>
+              <h2 style={{ fontSize: '12pt', fontWeight: 'bold', margin: '2px 0', color: '#000000' }}>โรงเรียนหนองบัวแดงวิทยา</h2>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1.5px solid #000000', paddingBottom: '5px', marginTop: '10px' }}>
+                <span style={{ fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>กิจกรรมพัฒนาผู้เรียน</span>
+                <span style={{ fontSize: '9pt', color: '#000000' }}>วันที่ {new Date().toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
               </div>
             </div>
             
-            <table style={{ width: '100%', borderCollapse: 'collapse', border: '1.5px solid #000000' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', border: '1.2px solid #000000' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f3f4f6' }}>
-                  <th style={{ border: '1px solid #000000', padding: '10px 5px', width: '50px', textAlign: 'center', fontWeight: 'bold', fontSize: '12pt', color: '#000000' }}>ลำดับ</th>
-                  <th style={{ border: '1px solid #000000', padding: '10px 5px', width: '110px', textAlign: 'center', fontWeight: 'bold', fontSize: '12pt', color: '#000000' }}>รหัสประจำตัว</th>
-                  <th style={{ border: '1px solid #000000', padding: '10px 10px', textAlign: 'left', fontWeight: 'bold', fontSize: '12pt', color: '#000000' }}>ชื่อ-นามสกุล</th>
-                  <th style={{ border: '1px solid #000000', padding: '10px 5px', width: '90px', textAlign: 'center', fontWeight: 'bold', fontSize: '12pt', color: '#000000' }}>ชั้น/ห้อง</th>
+                  <th style={{ border: '1px solid #000000', padding: '6px 4px', width: '40px', textAlign: 'center', fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>ลำดับ</th>
+                  <th style={{ border: '1px solid #000000', padding: '6px 4px', width: '100px', textAlign: 'center', fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>รหัสประจำตัว</th>
+                  <th style={{ border: '1px solid #000000', padding: '6px 8px', textAlign: 'left', fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>ชื่อ-นามสกุล</th>
+                  <th style={{ border: '1px solid #000000', padding: '6px 4px', width: '80px', textAlign: 'center', fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>ชั้น/ห้อง</th>
                 </tr>
               </thead>
               <tbody>
                 {chunk.map((s, idx) => (
-                  <tr key={`print-row-${s.id}`}>
-                    <td style={{ border: '1px solid #000000', padding: '8px 5px', textAlign: 'center', fontSize: '12pt', color: '#000000' }}>{chunkIdx * 25 + idx + 1}</td>
-                    <td style={{ border: '1px solid #000000', padding: '8px 5px', textAlign: 'center', fontWeight: 'bold', fontSize: '12pt', color: '#000000' }}>{s.id}</td>
-                    <td style={{ border: '1px solid #000000', padding: '8px 10px', fontWeight: 'bold', fontSize: '12pt', color: '#000000' }}>{s.name}</td>
-                    <td style={{ border: '1px solid #000000', padding: '8px 5px', textAlign: 'center', fontSize: '12pt', color: '#000000' }}>{s.level}/{s.room}</td>
+                  <tr key={`print-row-${chunkIdx}-${idx}`} style={{ height: '8.5mm' }}>
+                    <td style={{ border: '1px solid #000000', padding: '0 4px', textAlign: 'center', fontSize: '10pt', color: '#000000' }}>
+                      {s ? (chunkIdx * 25 + idx + 1) : ''}
+                    </td>
+                    <td style={{ border: '1px solid #000000', padding: '0 4px', textAlign: 'center', fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>
+                      {s ? s.id : ''}
+                    </td>
+                    <td style={{ border: '1px solid #000000', padding: '0 8px', fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>
+                      {s ? s.name : ''}
+                    </td>
+                    <td style={{ border: '1px solid #000000', padding: '0 4px', textAlign: 'center', fontSize: '10pt', color: '#000000' }}>
+                      {s ? `${s.level}/${s.room}` : ''}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <div style={{ marginTop: '25px', textAlign: 'right', fontWeight: 'bold', fontSize: '10pt', color: '#000000' }}>
-              หน้าที่ {chunkIdx + 1} จาก {studentChunks.length} | รวมทั้งสิ้น {students.length} คน
+            <div style={{ marginTop: '15px', textAlign: 'right', fontWeight: 'bold', fontSize: '9pt', color: '#000000' }}>
+              หน้าที่ {chunkIdx + 1} จาก {pagedStudents.length} | รวมทั้งสิ้น {students.length} คน
             </div>
           </div>
         ))}
