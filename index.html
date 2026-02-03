@@ -19,29 +19,42 @@
                 size: A4;
                 margin: 10mm;
             }
-            body { 
-                background: white !important; 
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
+            html, body {
+                height: auto;
+                background-color: #fff;
             }
-            /* ซ่อนส่วนที่ไม่เกี่ยวข้อง */
-            nav, header, footer, button, .no-print, .swal2-container {
+            /* ซ่อนทุกอย่างก่อน */
+            body > * {
                 display: none !important;
             }
-            /* บังคับให้ส่วน Print Area แสดงผล */
-            .print-only {
+            /* แสดงเฉพาะ root ที่มีเนื้อหา */
+            #root {
                 display: block !important;
-                visibility: visible !important;
-                position: static !important;
+            }
+            /* ซ่อนทุกอย่างใน root ยกเว้นส่วนที่ต้องการพิมพ์ */
+            #root > *:not(.print-container-wrapper) {
+                display: none !important;
+            }
+            /* บังคับให้ส่วน Print Wrapper แสดงผล */
+            .print-container-wrapper {
+                display: block !important;
+                position: absolute;
+                top: 0;
+                left: 0;
                 width: 100% !important;
             }
-            /* ป้องกันเนื้อหาอื่นๆ ใน #root มารบกวน */
-            #root > div:not(.print-container-wrapper) {
-                display: none !important;
+            .print-only {
+                display: block !important;
             }
             .page-break {
                 display: block;
                 page-break-after: always;
+                clear: both;
+            }
+            /* ล้างการตั้งค่าพื้นหลังเพื่อให้สีแสดงผล */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
         }
         .print-only {
