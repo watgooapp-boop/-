@@ -12,6 +12,45 @@
     <style>
         body { font-family: 'Sarabun', sans-serif; }
         [v-cloak] { display: none; }
+
+        /* การตั้งค่าสำหรับการพิมพ์ */
+        @media print {
+            @page {
+                size: A4;
+                margin: 15mm;
+            }
+            body { 
+                background: white !important; 
+                -webkit-print-color-adjust: exact; 
+                print-color-adjust: exact;
+            }
+            nav, header, footer, button, .no-print, .swal2-container {
+                display: none !important;
+            }
+            #root {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+                width: 100% !important;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-top: 20px;
+            }
+            th, td {
+                border: 1px solid #000 !important;
+                padding: 10px !important;
+                text-align: left;
+            }
+            th {
+                background-color: #f3f4f6 !important;
+            }
+        }
+        .print-only {
+            display: none;
+        }
     </style>
 <script type="importmap">
 {
@@ -26,6 +65,7 @@
 </head>
 <body class="bg-slate-50">
     <div id="root"></div>
+    <div id="print-root" class="print-only"></div>
     <!-- โหลด entry point เป็น module -->
     <script type="module" src="./index.tsx"></script>
 </body>
