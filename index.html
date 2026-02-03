@@ -17,7 +17,7 @@
         @media print {
             @page {
                 size: A4;
-                margin: 15mm;
+                margin: 10mm 15mm; /* ขอบกระดาษมาตรฐาน */
             }
             /* ซ่อนทุกอย่างบนหน้าจอ */
             body * {
@@ -27,23 +27,32 @@
             #print-area-container, #print-area-container * {
                 visibility: visible;
             }
-            /* จัดตำแหน่งส่วนที่จะพิมพ์ให้เริ่มที่มุมซ้ายบน */
+            /* จัดตำแหน่งส่วนที่จะพิมพ์ */
             #print-area-container {
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 100%;
                 display: block !important;
+                margin: 0;
+                padding: 0;
             }
             .page-break {
                 display: block;
                 page-break-after: always;
             }
-            /* บังคับให้สีและพื้นหลังแสดงผลใน PDF */
+            /* ป้องกันหน้าว่างสุดท้าย */
+            .last-page {
+                page-break-after: auto !important;
+            }
+            /* บังคับให้สีและเส้นแสดงผล */
             * {
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+                color-adjust: exact !important;
             }
+            /* ซ่อน Scrollbar ตอนพิมพ์ */
+            body { overflow: visible !important; }
         }
     </style>
 <script type="importmap">
