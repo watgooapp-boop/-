@@ -112,17 +112,17 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
 
   return (
     <div className="w-full space-y-8 no-print">
-      {/* Registration Form */}
+      {/* Registration Form - ปรับปรุงตัวหนังสือให้สวยงามสมดุลกับส่วนรายชื่อ */}
       <div className="max-w-4xl mx-auto bg-white rounded-3xl shadow-xl overflow-hidden border border-indigo-50">
-        <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 p-8 text-white text-center">
-          <h2 className="text-3xl font-black tracking-tight">ลงทะเบียนเข้าชุมนุม</h2>
-          <p className="text-indigo-100 opacity-90 text-sm mt-2 font-medium uppercase tracking-widest">โรงเรียนหนองบัวแดงวิทยา</p>
+        <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 text-white text-center">
+          <h2 className="text-2xl font-black tracking-tight uppercase">ลงทะเบียนเข้าชุมนุม</h2>
+          <p className="text-indigo-100 opacity-80 text-[10px] mt-1 font-bold uppercase tracking-[0.2em]">โรงเรียนหนองบัวแดงวิทยา</p>
         </div>
         
-        <form onSubmit={handleSubmit} className="p-10 space-y-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <form onSubmit={handleSubmit} className="p-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="md:col-span-2">
-              <label className="block text-2xl font-black text-indigo-900 mb-3 ml-1">เลขประจำตัว 5 หลัก</label>
+              <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">เลขประจำตัว 5 หลัก</label>
               <input 
                 type="text" 
                 maxLength={5}
@@ -130,29 +130,29 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
                 disabled={isSubmitting}
                 value={formData.id}
                 onChange={(e) => setFormData({...formData, id: e.target.value.replace(/\D/g, '')})}
-                className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-black text-2xl text-indigo-700 transition-all placeholder:text-gray-300 shadow-inner"
+                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-lg text-indigo-700 transition-all placeholder:text-gray-300 shadow-inner"
                 placeholder="00000"
               />
             </div>
             <div className="md:col-span-2">
-              <label className="block text-xl font-black text-indigo-900 mb-3 ml-1">ชื่อ-นามสกุล</label>
+              <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">ชื่อ-นามสกุล</label>
               <input 
                 type="text" 
                 required
                 disabled={isSubmitting}
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-xl text-gray-700 transition-all shadow-inner"
+                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 transition-all shadow-inner"
                 placeholder="กรอกชื่อและนามสกุล"
               />
             </div>
             <div>
-              <label className="block text-xl font-black text-indigo-900 mb-3 ml-1">ระดับชั้น</label>
+              <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">ระดับชั้น</label>
               <select 
                 disabled={isSubmitting}
                 value={formData.level}
                 onChange={(e) => setFormData({...formData, level: e.target.value})}
-                className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-xl text-gray-700 appearance-none shadow-inner"
+                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner"
               >
                 <option value="ม.4">ม.4</option>
                 <option value="ม.5">ม.5</option>
@@ -160,12 +160,12 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
               </select>
             </div>
             <div>
-              <label className="block text-xl font-black text-indigo-900 mb-3 ml-1">ห้อง</label>
+              <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">ห้องเรียน</label>
               <select 
                 disabled={isSubmitting}
                 value={formData.room}
                 onChange={(e) => setFormData({...formData, room: parseInt(e.target.value)})}
-                className="w-full px-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-xl text-gray-700 appearance-none shadow-inner"
+                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner"
               >
                 {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
                   <option key={num} value={num}>ห้อง {num}</option>
@@ -176,14 +176,14 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
           <button 
             type="submit"
             disabled={isSubmitting}
-            className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-6 rounded-2xl shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3 text-xl ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'shadow-indigo-200'}`}
+            className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3 text-sm uppercase tracking-widest ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'shadow-indigo-100'}`}
           >
-            {isSubmitting ? <><i className="fas fa-spinner animate-spin"></i> กำลังบันทึกข้อมูล...</> : <><i className="fas fa-user-plus"></i> ลงทะเบียน</>}
+            {isSubmitting ? <><i className="fas fa-spinner animate-spin"></i> กำลังบันทึกข้อมูล...</> : <><i className="fas fa-user-plus"></i> ลงทะเบียนเข้าชุมนุม</>}
           </button>
         </form>
       </div>
 
-      {/* Student List Grid (Web View) - เต็มหน้าจอและ 2 คอลัมน์ */}
+      {/* Student List Grid (Web View) - ส่วนนี้สวยงามอยู่แล้วคงไว้ตามเดิม */}
       <div className="w-full bg-white p-8 rounded-3xl shadow-sm border border-indigo-50">
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 border-b border-indigo-50 pb-6 gap-6">
           <div>
@@ -224,7 +224,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
         </div>
       </div>
 
-      {/* Modal Preview - แสดงตัวอย่างก่อนพิมพ์ */}
+      {/* Modal Preview - แสดงตัวอย่างก่อนพิมพ์ (คงเดิม) */}
       {showPreview && (
         <div className="fixed inset-0 bg-slate-900/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
           <div className="bg-white w-full max-w-5xl h-[95vh] rounded-[2.5rem] overflow-hidden flex flex-col shadow-2xl">
@@ -285,7 +285,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
         </div>
       )}
 
-      {/* เนื้อหาที่จะพิมพ์จริง (Hoisted for visibility technique) */}
+      {/* เนื้อหาที่จะพิมพ์จริง (คงเดิม) */}
       <div id="print-area-container" style={{ display: 'none' }}>
         {pagedStudents.map((chunk, chunkIdx) => (
           <div 
