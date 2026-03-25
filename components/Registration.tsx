@@ -15,7 +15,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
   const [formData, setFormData] = useState({
     id: '',
     name: '',
-    level: 'ม.4',
+    level: 'ม.1',
     room: 1
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,7 +71,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
         showConfirmButton: false 
       });
       
-      setFormData({ id: '', name: '', level: 'ม.4', room: 1 });
+      setFormData({ id: '', name: '', level: 'ม.1', room: 1 });
     } catch (error) {
       Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้' });
     } finally {
@@ -148,16 +148,19 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
             </div>
             <div>
               <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">ระดับชั้น</label>
-              <select 
-                disabled={isSubmitting}
-                value={formData.level}
-                onChange={(e) => setFormData({...formData, level: e.target.value})}
-                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner"
-              >
-                <option value="ม.4">ม.4</option>
-                <option value="ม.5">ม.5</option>
-                <option value="ม.6">ม.6</option>
-              </select>
+                <select 
+                  disabled={isSubmitting}
+                  value={formData.level}
+                  onChange={(e) => setFormData({...formData, level: e.target.value})}
+                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner"
+                >
+                  <option value="ม.1">ม.1</option>
+                  <option value="ม.2">ม.2</option>
+                  <option value="ม.3">ม.3</option>
+                  <option value="ม.4">ม.4</option>
+                  <option value="ม.5">ม.5</option>
+                  <option value="ม.6">ม.6</option>
+                </select>
             </div>
             <div>
               <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">ห้องเรียน</label>
@@ -239,7 +242,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
               {pagedStudents.map((chunk, chunkIdx) => (
                 <div key={chunkIdx} className={`bg-white mb-10 shadow-xl mx-auto rounded-sm border border-slate-300`} style={{ width: '210mm', height: '297mm', padding: '15mm 20mm', boxSizing: 'border-box' }}>
                   <div className="text-center mb-6">
-                    <img src="https://s.imgz.io/2026/03/23/logo_school-removebg692d30e639191ff8.png" alt="logo" className="h-14 mx-auto mb-3" />
+                    <img src="https://img5.pic.in.th/file/secure-sv1/nw_logo-removebg.png" alt="logo" className="h-14 mx-auto mb-3" />
                     <h1 className="text-lg font-bold text-gray-900">รายงานรายชื่อนักเรียนลงทะเบียนเข้าชุมนุม</h1>
                     <h2 className="text-sm font-bold text-gray-700">โรงเรียนหนองบัวแดงวิทยา</h2>
                     <div className="flex justify-between items-end mt-4 text-[10px] text-gray-600 border-b border-black pb-1">
