@@ -59,7 +59,7 @@ const Home: React.FC<HomeProps> = ({ students, attendance, announcements }) => {
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
-  // เรียงลำดับนักเรียนตาม ระดับชั้น (ม.4-ม.6) และ ห้อง (1-13)
+  // เรียงลำดับนักเรียนตาม ระดับชั้น (ม.1-ม.6) และ ห้อง (1-13)
   const sortedStudents = [...students].sort((a, b) => {
     if (a.level !== b.level) return a.level.localeCompare(b.level, 'th');
     return a.room - b.room;
