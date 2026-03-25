@@ -179,6 +179,34 @@ const Settings: React.FC<SettingsProps> = ({
     }
   };
 
+  const handleDeleteAssignment = async (id: string, title: string) => {
+    const result = await Swal.fire({
+      title: 'ยืนยันการลบชิ้นงาน?',
+      text: `ชิ้นงาน "${title}" จะถูกลบออกจากระบบ Cloud`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'ใช่, ลบเลย',
+      cancelButtonText: 'ยกเลิก'
+    });
+
+    if (result.isConfirmed) {
+      setIsSubmitting(true);
+      Swal.fire({ title: 'กำลังลบชิ้นงาน...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      
+      try {
+        await syncToCloud('delete_assignment', { id });
+        if (refreshData) await refreshData();
+        Swal.fire('ลบข้อมูลเรียบร้อย', '', 'success');
+      } catch (err) {
+        Swal.fire('ผิดพลาด', 'ไม่สามารถลบข้อมูลได้', 'error');
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, target: 'ann' | 'editAnn') => {
     const file = e.target.files?.[0];
     if (file) {
@@ -313,6 +341,7 @@ const Settings: React.FC<SettingsProps> = ({
                     </div>
                     <div className="flex gap-1">
                       <button onClick={() => setEditingAsg(asg)} className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"><i className="fas fa-edit text-xs"></i></button>
+                      <button onClick={() => handleDeleteAssignment(asg.id, asg.title)} className="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors"><i className="fas fa-trash text-xs"></i></button>
                     </div>
                   </div>
                 ))}
