@@ -7,7 +7,7 @@ const Header: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col md:flex-row items-center gap-6">
         <div className="bg-white p-2 rounded-full shadow-inner">
           <img 
-            src="https://img5.pic.in.th/file/secure-sv1/nw_logo-removebg.png" 
+            src="https://s.imgz.io/2026/03/23/logo_school-removebg692d30e639191ff8.png" 
             alt="Logo" 
             className="h-20 w-20 object-contain"
           />
