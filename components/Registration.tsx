@@ -239,7 +239,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
               {pagedStudents.map((chunk, chunkIdx) => (
                 <div key={chunkIdx} className={`bg-white mb-10 shadow-xl mx-auto rounded-sm border border-slate-300`} style={{ width: '210mm', height: '297mm', padding: '15mm 20mm', boxSizing: 'border-box' }}>
                   <div className="text-center mb-6">
-                    <img src="https://img5.pic.in.th/file/secure-sv1/nw_logo-removebg.png" alt="logo" className="h-14 mx-auto mb-3" />
+                    <img src="https://s.imgz.io/2026/03/23/logo_school-removebg692d30e639191ff8.png" alt="logo" className="h-14 mx-auto mb-3" />
                     <h1 className="text-lg font-bold text-gray-900">รายงานรายชื่อนักเรียนลงทะเบียนเข้าชุมนุม</h1>
                     <h2 className="text-sm font-bold text-gray-700">โรงเรียนหนองบัวแดงวิทยา</h2>
                     <div className="flex justify-between items-end mt-4 text-[10px] text-gray-600 border-b border-black pb-1">
