@@ -133,6 +133,9 @@ const AttendanceCheck: React.FC<AttendanceCheckProps> = ({ students, attendance,
               className="px-4 py-2 border-2 border-slate-100 rounded-xl focus:border-indigo-500 outline-none font-bold text-gray-700 bg-white shadow-sm"
             >
               <option value="ทั้งหมด">ทั้งหมด</option>
+              <option value="ม.1">ม.1</option>
+              <option value="ม.2">ม.2</option>
+              <option value="ม.3">ม.3</option>
               <option value="ม.4">ม.4</option>
               <option value="ม.5">ม.5</option>
               <option value="ม.6">ม.6</option>
