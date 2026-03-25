@@ -30,6 +30,7 @@ const Settings: React.FC<SettingsProps> = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'students' | 'announcements' | 'assignments' | 'grading'>('students');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [filterAssignmentId, setFilterAssignmentId] = useState<string>('all');
   
   const [editingStudent, setEditingStudent] = useState<{originalId: string, data: Student} | null>(null);
   const [editingAnn, setEditingAnn] = useState<Announcement | null>(null);
@@ -384,10 +385,35 @@ const Settings: React.FC<SettingsProps> = ({
 
         {activeSubTab === 'grading' && (
           <div className="bg-white rounded-2xl shadow-sm border p-6">
-            <h2 className="text-xl font-bold mb-6 text-indigo-900 border-b pb-4 flex justify-between items-center">
-              <span>ตรวจงานและประเมินผล</span>
-              <span className="text-sm font-normal text-gray-400">พบ {submissions.length} รายการ</span>
-            </h2>
+            <div className="border-b pb-4 mb-6">
+              <h2 className="text-xl font-bold text-indigo-900 flex justify-between items-center mb-4">
+                <span>ตรวจงานและประเมินผล</span>
+                <span className="text-sm font-normal text-gray-400">พบ {submissions.length} รายการ</span>
+              </h2>
+              
+              <div className="flex flex-col md:flex-row gap-4 items-end">
+                <div className="flex-grow w-full">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1 ml-1">ตัวกรองชิ้นงาน</label>
+                  <select 
+                    value={filterAssignmentId} 
+                    onChange={(e) => setFilterAssignmentId(e.target.value)}
+                    className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-indigo-900 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+                  >
+                    <option value="all">แสดงทั้งหมด</option>
+                    {assignments.map(asg => (
+                      <option key={asg.id} value={asg.id}>{asg.title}</option>
+                    ))}
+                  </select>
+                </div>
+                <button 
+                  onClick={() => setFilterAssignmentId('all')}
+                  className="px-4 py-2 bg-gray-100 text-gray-500 rounded-xl text-xs font-bold hover:bg-gray-200 transition-all whitespace-nowrap"
+                >
+                  ล้างตัวกรอง
+                </button>
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead className="text-xs text-gray-400 uppercase tracking-widest border-b">
@@ -399,10 +425,16 @@ const Settings: React.FC<SettingsProps> = ({
                   </tr>
                 </thead>
                 <tbody className="divide-y text-sm">
-                  {submissions.length === 0 ? (
-                    <tr><td colSpan={4} className="py-10 text-center text-gray-400">ยังไม่มีการส่งงานในระบบ</td></tr>
-                  ) : (
-                    submissions.slice().reverse().map(sub => {
+                  {(() => {
+                    const filteredSubmissions = filterAssignmentId === 'all' 
+                      ? submissions 
+                      : submissions.filter(s => s.assignmentId.toString() === filterAssignmentId.toString());
+
+                    if (filteredSubmissions.length === 0) {
+                      return <tr><td colSpan={4} className="py-10 text-center text-gray-400">ไม่พบข้อมูลการส่งงานตามเงื่อนไขที่เลือก</td></tr>;
+                    }
+
+                    return filteredSubmissions.slice().reverse().map(sub => {
                       const student = students.find(s => s.id.toString() === sub.studentId.toString());
                       const assignment = assignments.find(a => a.id.toString() === sub.assignmentId.toString());
                       return (
@@ -449,8 +481,8 @@ const Settings: React.FC<SettingsProps> = ({
                           </td>
                         </tr>
                       );
-                    })
-                  )}
+                    });
+                  })()}
                 </tbody>
               </table>
             </div>
