@@ -30,6 +30,15 @@ const SubmissionTab: React.FC<SubmissionTabProps> = ({ students, assignments, su
     return submissions.filter(s => String(s.studentId).trim() === String(foundStudent.id).trim());
   }, [foundStudent, submissions]);
 
+  const currentSubmission = useMemo(() => {
+    if (!selectedAssignmentId || !foundStudent) return null;
+    return studentSubmissions.find(s => String(s.assignmentId).trim() === String(selectedAssignmentId).trim());
+  }, [selectedAssignmentId, studentSubmissions, foundStudent]);
+
+  const isAlreadyPassed = useMemo(() => {
+    return currentSubmission?.evaluation === EvaluationStatus.PASS;
+  }, [currentSubmission]);
+
   const searchStudent = () => {
     if (!studentIdInput.trim()) {
       Swal.fire('กรุณากรอกรหัส', 'โปรดระบุเลขประจำตัว 5 หลัก', 'warning');
@@ -77,14 +86,14 @@ const SubmissionTab: React.FC<SubmissionTabProps> = ({ students, assignments, su
 
     setIsUploading(true);
     Swal.fire({
-      title: 'กำลังส่งข้อมูล...',
+      title: currentSubmission ? 'กำลังส่งข้อมูล (เขียนทับ)...' : 'กำลังส่งข้อมูล...',
       text: 'ระบบกำลังอัปโหลดหลักฐานไปยัง Cloud',
       allowOutsideClick: false,
       didOpen: () => { Swal.showLoading(); }
     });
 
     const submissionData = {
-      id: Date.now().toString(),
+      id: currentSubmission ? currentSubmission.id : Date.now().toString(),
       assignmentId: selectedAssignmentId,
       studentId: String(foundStudent.id).trim(),
       type: submissionType,
@@ -254,77 +263,105 @@ const SubmissionTab: React.FC<SubmissionTabProps> = ({ students, assignments, su
                         </p>
                       </div>
                     )}
+
+                    {/* แจ้งเตือนสถานะการส่งงานเดิม */}
+                    {currentSubmission && (
+                      <div className={`p-4 rounded-2xl border-2 flex items-center gap-3 ${
+                        isAlreadyPassed ? 'bg-green-50 border-green-200 text-green-700' : 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                      }`}>
+                        <i className={`fas ${isAlreadyPassed ? 'fa-check-circle' : 'fa-exclamation-circle'} text-xl`}></i>
+                        <div className="flex-grow">
+                          <p className="text-xs font-bold uppercase tracking-tight">
+                            {isAlreadyPassed ? 'งานนี้ผ่านการประเมินแล้ว' : 'คุณเคยส่งงานนี้แล้ว (รอตรวจ/ไม่ผ่าน)'}
+                          </p>
+                          <p className="text-[10px] opacity-80">
+                            {isAlreadyPassed ? 'ไม่สามารถส่งงานซ้ำได้อีก' : 'การส่งครั้งนี้จะบันทึกทับข้อมูลเดิม'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="space-y-6">
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 mb-3 uppercase tracking-widest">รูปแบบการส่ง</label>
-                      <div className="grid grid-cols-3 gap-3">
-                        {[
-                          { type: 'image', icon: 'fa-image', label: 'รูปภาพ' },
-                          { type: 'link', icon: 'fa-link', label: 'ลิงก์งาน' },
-                          { type: 'file', icon: 'fa-file-alt', label: 'ไฟล์งาน' }
-                        ].map(item => (
-                          <button
-                            key={item.type}
-                            type="button"
-                            onClick={() => { setSubmissionType(item.type as any); setSubmissionContent(''); }}
-                            className={`py-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 ${submissionType === item.type ? 'border-indigo-600 bg-white text-indigo-600 font-bold shadow-md shadow-indigo-100' : 'border-transparent bg-white/50 text-gray-400 hover:bg-white'}`}
-                          >
-                            <i className={`fas ${item.icon} text-sm`}></i>
-                            <span className="text-[9px] uppercase font-black tracking-widest">{item.label}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">ข้อมูลหลักฐาน</label>
-                      {submissionType === 'link' ? (
-                        <input 
-                          type="url"
-                          required
-                          placeholder="วางลิงก์หลักฐานที่นี่"
-                          value={submissionContent}
-                          onChange={(e) => setSubmissionContent(e.target.value)}
-                          className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none text-sm font-medium shadow-sm"
-                        />
-                      ) : (
-                        <div className="relative">
-                          <input 
-                            type="file"
-                            accept={submissionType === 'image' ? 'image/*' : '*/*'}
-                            onChange={handleFileUpload}
-                            className="hidden"
-                            id="upload-input-submission"
-                          />
-                          <label 
-                            htmlFor="upload-input-submission"
-                            className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-200 bg-white rounded-2xl p-6 cursor-pointer hover:bg-indigo-50 transition-all min-h-[120px] shadow-sm"
-                          >
-                            <i className={`fas ${submissionContent ? 'fa-check-circle text-green-500' : 'fa-cloud-upload-alt text-indigo-300'} text-3xl mb-2`}></i>
-                            <span className="text-xs font-bold text-indigo-900 text-center truncate w-full px-4">
-                              {submissionContent ? 'เลือกไฟล์ใหม่' : `เลือกไฟล์${submissionType === 'image' ? 'รูปภาพ' : 'งาน'}`}
-                            </span>
-                            <span className="text-[9px] text-gray-400 mt-1">สูงสุด 2MB</span>
-                          </label>
+                    {!isAlreadyPassed ? (
+                      <>
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 mb-3 uppercase tracking-widest">รูปแบบการส่ง</label>
+                          <div className="grid grid-cols-3 gap-3">
+                            {[
+                              { type: 'image', icon: 'fa-image', label: 'รูปภาพ' },
+                              { type: 'link', icon: 'fa-link', label: 'ลิงก์งาน' },
+                              { type: 'file', icon: 'fa-file-alt', label: 'ไฟล์งาน' }
+                            ].map(item => (
+                              <button
+                                key={item.type}
+                                type="button"
+                                onClick={() => { setSubmissionType(item.type as any); setSubmissionContent(''); }}
+                                className={`py-3 rounded-2xl border-2 transition-all flex flex-col items-center gap-1 ${submissionType === item.type ? 'border-indigo-600 bg-white text-indigo-600 font-bold shadow-md shadow-indigo-100' : 'border-transparent bg-white/50 text-gray-400 hover:bg-white'}`}
+                              >
+                                <i className={`fas ${item.icon} text-sm`}></i>
+                                <span className="text-[9px] uppercase font-black tracking-widest">{item.label}</span>
+                              </button>
+                            ))}
+                          </div>
                         </div>
-                      )}
-                    </div>
 
-                    {submissionType === 'image' && submissionContent && (
-                      <div className="p-2 bg-white rounded-2xl border shadow-inner flex justify-center animate-fade-in">
-                        <img src={submissionContent} alt="preview" className="max-h-32 rounded-lg object-contain" />
+                        <div>
+                          <label className="block text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">ข้อมูลหลักฐาน</label>
+                          {submissionType === 'link' ? (
+                            <input 
+                              type="url"
+                              required
+                              placeholder="วางลิงก์หลักฐานที่นี่"
+                              value={submissionContent}
+                              onChange={(e) => setSubmissionContent(e.target.value)}
+                              className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none text-sm font-medium shadow-sm"
+                            />
+                          ) : (
+                            <div className="relative">
+                              <input 
+                                type="file"
+                                accept={submissionType === 'image' ? 'image/*' : '*/*'}
+                                onChange={handleFileUpload}
+                                className="hidden"
+                                id="upload-input-submission"
+                              />
+                              <label 
+                                htmlFor="upload-input-submission"
+                                className="flex flex-col items-center justify-center border-2 border-dashed border-indigo-200 bg-white rounded-2xl p-6 cursor-pointer hover:bg-indigo-50 transition-all min-h-[120px] shadow-sm"
+                              >
+                                <i className={`fas ${submissionContent ? 'fa-check-circle text-green-500' : 'fa-cloud-upload-alt text-indigo-300'} text-3xl mb-2`}></i>
+                                <span className="text-xs font-bold text-indigo-900 text-center truncate w-full px-4">
+                                  {submissionContent ? 'เลือกไฟล์ใหม่' : `เลือกไฟล์${submissionType === 'image' ? 'รูปภาพ' : 'งาน'}`}
+                                </span>
+                                <span className="text-[9px] text-gray-400 mt-1">สูงสุด 2MB</span>
+                              </label>
+                            </div>
+                          )}
+                        </div>
+
+                        {submissionType === 'image' && submissionContent && (
+                          <div className="p-2 bg-white rounded-2xl border shadow-inner flex justify-center animate-fade-in">
+                            <img src={submissionContent} alt="preview" className="max-h-32 rounded-lg object-contain" />
+                          </div>
+                        )}
+
+                        <button 
+                          type="submit"
+                          disabled={isUploading}
+                          className={`w-full bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 ${isUploading ? 'opacity-70 cursor-wait' : 'hover:bg-indigo-700 active:scale-95 shadow-indigo-100'}`}
+                        >
+                          {isUploading ? <><i className="fas fa-circle-notch animate-spin"></i> กำลังบันทึก...</> : <><i className="fas fa-paper-plane"></i> {currentSubmission ? 'ส่งงานใหม่ (เขียนทับ)' : 'ส่งงาน'}</>}
+                        </button>
+                      </>
+                    ) : (
+                      <div className="py-10 text-center space-y-4">
+                        <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto shadow-sm">
+                          <i className="fas fa-check text-2xl"></i>
+                        </div>
+                        <p className="text-sm font-bold text-gray-500">คุณผ่านการประเมินชิ้นงานนี้แล้ว<br/>ยินดีด้วย!</p>
                       </div>
                     )}
-
-                    <button 
-                      type="submit"
-                      disabled={isUploading}
-                      className={`w-full bg-indigo-600 text-white font-black py-5 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 ${isUploading ? 'opacity-70 cursor-wait' : 'hover:bg-indigo-700 active:scale-95 shadow-indigo-100'}`}
-                    >
-                      {isUploading ? <><i className="fas fa-circle-notch animate-spin"></i> กำลังบันทึก...</> : <><i className="fas fa-paper-plane"></i> ส่งงาน</>}
-                    </button>
                   </div>
                 </form>
               ) : (
