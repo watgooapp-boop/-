@@ -270,6 +270,7 @@ const Settings: React.FC<SettingsProps> = ({
                   <input type="text" value={editingStudent.data.id} readOnly className="px-3 py-2 border rounded-lg bg-gray-100 font-bold text-gray-400" />
                   <input type="text" value={editingStudent.data.name} onChange={e => setEditingStudent({...editingStudent, data: {...editingStudent.data, name: e.target.value}})} className="px-3 py-2 border rounded-lg bg-white" placeholder="ชื่อ-สกุล" />
                   <select value={editingStudent.data.level} onChange={e => setEditingStudent({...editingStudent, data: {...editingStudent.data, level: e.target.value}})} className="px-3 py-2 border rounded-lg bg-white">
+                    <option value="ม.1">ม.1</option><option value="ม.2">ม.2</option><option value="ม.3">ม.3</option>
                     <option value="ม.4">ม.4</option><option value="ม.5">ม.5</option><option value="ม.6">ม.6</option>
                   </select>
                   <input type="number" value={editingStudent.data.room} onChange={e => setEditingStudent({...editingStudent, data: {...editingStudent.data, room: parseInt(e.target.value)}})} className="px-3 py-2 border rounded-lg bg-white" placeholder="ห้อง" />
