@@ -290,6 +290,63 @@ const Settings: React.FC<SettingsProps> = ({
     return a.room - b.room;
   });
 
+  const handleExportExcel = () => {
+    if (students.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'ไม่มีข้อมูล',
+        text: 'ไม่มีรายชื่อนักเรียนในระบบที่พร้อมจะส่งออก'
+      });
+      return;
+    }
+
+    try {
+      const BOM = '\uFEFF';
+      let csvContent = BOM;
+      
+      const headers = ['ลำดับ', 'รหัสประจำตัว', 'ชื่อ-นามสกุล', 'ระดับชั้น', 'ห้องเรียน'];
+      csvContent += headers.join(',') + '\n';
+      
+      sortedStudents.forEach((student, index) => {
+        const row = [
+          index + 1,
+          `"${student.id}"`,
+          `"${student.name.replace(/"/g, '""')}"`,
+          `"${student.level}"`,
+          `"ห้อง ${student.room}"`
+        ];
+        csvContent += row.join(',') + '\n';
+      });
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      const datetime = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `รายชื่อนักเรียนทั้งหมด_ชุมนุม_${datetime}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'ส่งออกสำเร็จ',
+        text: 'ส่งออกรายชื่อเป็นไฟล์สำหรับ Excel (.csv) เรียบร้อยแล้ว',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'ผิดพลาด',
+        text: 'ไม่สามารถสร้างไฟล์สำหรับ Excel ได้'
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-8">
       {previewImage && (
@@ -320,9 +377,17 @@ const Settings: React.FC<SettingsProps> = ({
       <div className="flex-grow space-y-6">
         {activeSubTab === 'students' && (
           <div className="bg-white rounded-2xl shadow-sm border p-6">
-            <h2 className="text-xl font-bold mb-6 text-indigo-900 border-b pb-4 flex justify-between items-center">
-              รายชื่อนักเรียนในระบบ
-              <span className="text-sm font-normal text-gray-400">ทั้งหมด {students.length} คน</span>
+            <h2 className="text-xl font-bold mb-6 text-indigo-900 border-b pb-4 flex justify-between items-center flex-wrap gap-4">
+              <div className="flex items-center gap-2">
+                <span>รายชื่อนักเรียนในระบบ</span>
+                <span className="text-sm font-normal text-gray-400">ทั้งหมด {students.length} คน</span>
+              </div>
+              <button
+                onClick={handleExportExcel}
+                className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 shadow-md cursor-pointer text-xs transition-all active:scale-95"
+              >
+                <i className="fas fa-file-excel"></i> ส่งออก Excel
+              </button>
             </h2>
             
             {editingStudent && (
