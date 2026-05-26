@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Student } from '../types';
 import Swal from 'sweetalert2';
-import * as XLSX from 'xlsx';
 
 interface RegistrationProps {
   students: Student[];
@@ -144,34 +143,40 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
     }
 
     try {
-      const worksheetData = sortedStudentsForList.map((student, index) => ({
-        'ลำดับ': index + 1,
-        'รหัสประจำตัว': student.id,
-        'ชื่อ-นามสกุล': student.name,
-        'ระดับชั้น': student.level,
-        'ห้องเรียน': `ห้อง ${student.room}`
-      }));
-
-      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
-
-      worksheet['!cols'] = [
-        { wch: 10 }, // ลำดับ
-        { wch: 18 }, // รหัสประจำตัว
-        { wch: 30 }, // ชื่อ-นามสกุล
-        { wch: 15 }, // ระดับชั้น
-        { wch: 15 }  // ห้องเรียน
-      ];
-
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, 'รายชื่อนักเรียน');
-
+      // ใช้ BOM (Byte Order Mark) ของ UTF-8 เพื่อให้ Excel แสดงผลภาษาไทยได้อย่างถูกต้อง
+      const BOM = '\uFEFF';
+      let csvContent = BOM;
+      
+      const headers = ['ลำดับ', 'รหัสประจำตัว', 'ชื่อ-นามสกุล', 'ระดับชั้น', 'ห้องเรียน'];
+      csvContent += headers.join(',') + '\n';
+      
+      sortedStudentsForList.forEach((student, index) => {
+        const row = [
+          index + 1,
+          `"${student.id}"`, // ใส่เครื่องหมายคำพูดเพื่อรักษาเลข 0 ข้างหน้า (ถ้ามี)
+          `"${student.name.replace(/"/g, '""')}"`, // ทำการ Escape เครื่องหมายคำพูด
+          `"${student.level}"`,
+          `"ห้อง ${student.room}"`
+        ];
+        csvContent += row.join(',') + '\n';
+      });
+      
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
       const datetime = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
-      XLSX.writeFile(workbook, `รายชื่อนักเรียนลงทะเบียน_ชุมนุม_${datetime}.xlsx`);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `รายชื่อนักเรียนลงทะเบียน_ชุมนุม_${datetime}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
       Swal.fire({
         icon: 'success',
         title: 'ส่งออกสำเร็จ',
-        text: 'ระบบทำการดาวน์โหลดไฟล์ Excel เรียบร้อยแล้ว',
+        text: 'ระบบทำการส่งออกรายชื่อเป็นไฟล์ Excel (.csv) เรียบร้อยแล้ว',
         timer: 1500,
         showConfirmButton: false
       });
@@ -180,7 +185,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
       Swal.fire({
         icon: 'error',
         title: 'ผิดพลาด',
-        text: 'ไม่สามารถสร้างไฟล์ Excel ได้'
+        text: 'ไม่สามารถสร้างไฟล์สำหรับ Excel ได้'
       });
     }
   };
