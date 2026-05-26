@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Student } from '../types';
 import Swal from 'sweetalert2';
+import * as XLSX from 'xlsx';
 
 interface RegistrationProps {
   students: Student[];
@@ -132,6 +133,58 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
     window.print();
   };
 
+  const handleExportExcel = () => {
+    if (students.length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'ไม่มีข้อมูล',
+        text: 'ไม่มีรายชื่อนักเรียนในระบบที่พร้อมจะส่งออก'
+      });
+      return;
+    }
+
+    try {
+      const worksheetData = sortedStudentsForList.map((student, index) => ({
+        'ลำดับ': index + 1,
+        'รหัสประจำตัว': student.id,
+        'ชื่อ-นามสกุล': student.name,
+        'ระดับชั้น': student.level,
+        'ห้องเรียน': `ห้อง ${student.room}`
+      }));
+
+      const worksheet = XLSX.utils.json_to_sheet(worksheetData);
+
+      worksheet['!cols'] = [
+        { wch: 10 }, // ลำดับ
+        { wch: 18 }, // รหัสประจำตัว
+        { wch: 30 }, // ชื่อ-นามสกุล
+        { wch: 15 }, // ระดับชั้น
+        { wch: 15 }  // ห้องเรียน
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'รายชื่อนักเรียน');
+
+      const datetime = new Date().toLocaleDateString('th-TH').replace(/\//g, '-');
+      XLSX.writeFile(workbook, `รายชื่อนักเรียนลงทะเบียน_ชุมนุม_${datetime}.xlsx`);
+
+      Swal.fire({
+        icon: 'success',
+        title: 'ส่งออกสำเร็จ',
+        text: 'ระบบทำการดาวน์โหลดไฟล์ Excel เรียบร้อยแล้ว',
+        timer: 1500,
+        showConfirmButton: false
+      });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: 'error',
+        title: 'ผิดพลาด',
+        text: 'ไม่สามารถสร้างไฟล์ Excel ได้'
+      });
+    }
+  };
+
   return (
     <div className="w-full space-y-8 no-print">
       {/* Registration Form - ปรับปรุงตัวหนังสือให้สวยงามสมดุลกับส่วนรายชื่อ */}
@@ -257,12 +310,20 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
             </h3>
             <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">รายชื่อเรียงตามระดับชั้นและห้อง</p>
           </div>
-          <button 
-            onClick={() => setShowPreview(true)}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black flex items-center gap-3 shadow-lg shadow-emerald-100 transition-all active:scale-95 uppercase tracking-wider text-sm"
-          >
-            <i className="fas fa-file-pdf"></i> พิมพ์รายงาน / PDF
-          </button>
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <button 
+              onClick={handleExportExcel}
+              className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-teal-100 transition-all active:scale-95 uppercase tracking-wider text-sm cursor-pointer"
+            >
+              <i className="fas fa-file-excel"></i> ส่งออก Excel
+            </button>
+            <button 
+              onClick={() => setShowPreview(true)}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-2xl font-black flex items-center justify-center gap-2 shadow-lg shadow-emerald-100 transition-all active:scale-95 uppercase tracking-wider text-sm cursor-pointer"
+            >
+              <i className="fas fa-file-pdf"></i> พิมพ์รายงาน / PDF
+            </button>
+          </div>
         </div>
 
         <div className="max-h-[800px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-indigo-100">
