@@ -25,6 +25,10 @@ const App: React.FC = () => {
     const localVal = localStorage.getItem('admission_limit');
     return localVal ? parseInt(localVal, 10) : 40;
   });
+  const [admissionTier, setAdmissionTier] = useState<'all' | 'junior' | 'senior'>(() => {
+    const localVal = localStorage.getItem('admission_tier');
+    return (localVal === 'junior' || localVal === 'senior' || localVal === 'all') ? localVal : 'all';
+  });
 
   const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -93,6 +97,14 @@ const App: React.FC = () => {
             localStorage.setItem('admission_limit', val.toString());
           }
         }
+        const tierConfig = data.config.find((c: any) => c.key === 'admission_tier');
+        if (tierConfig) {
+          const val = tierConfig.value;
+          if (val === 'junior' || val === 'senior' || val === 'all') {
+            setAdmissionTier(val);
+            localStorage.setItem('admission_tier', val);
+          }
+        }
       }
     } catch (e: any) {
       console.error("Fetch error: ", e);
@@ -153,7 +165,7 @@ const App: React.FC = () => {
       case 'home':
         return <Home students={students} attendance={attendance} announcements={announcements} />;
       case 'register':
-        return <Registration students={students} setStudents={setStudents} refreshData={() => fetchData(true)} admissionLimit={admissionLimit} />;
+        return <Registration students={students} setStudents={setStudents} refreshData={() => fetchData(true)} admissionLimit={admissionLimit} admissionTier={admissionTier} />;
       case 'submit':
         return <SubmissionTab students={students} assignments={assignments} submissions={submissions} setSubmissions={setSubmissions} refreshData={() => fetchData(true)} />;
       case 'attendance':
@@ -169,6 +181,8 @@ const App: React.FC = () => {
             refreshData={() => fetchData(true)}
             admissionLimit={admissionLimit}
             setAdmissionLimit={setAdmissionLimit}
+            admissionTier={admissionTier}
+            setAdmissionTier={setAdmissionTier}
           />
         );
     }
