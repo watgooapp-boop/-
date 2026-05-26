@@ -21,6 +21,10 @@ const App: React.FC = () => {
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [admissionLimit, setAdmissionLimit] = useState<number>(() => {
+    const localVal = localStorage.getItem('admission_limit');
+    return localVal ? parseInt(localVal, 10) : 40;
+  });
 
   const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +83,17 @@ const App: React.FC = () => {
           }));
         setSubmissions(filteredSubs);
       }
+
+      if (data.config) {
+        const limitConfig = data.config.find((c: any) => c.key === 'admission_limit');
+        if (limitConfig) {
+          const val = parseInt(limitConfig.value, 10);
+          if (!isNaN(val)) {
+            setAdmissionLimit(val);
+            localStorage.setItem('admission_limit', val.toString());
+          }
+        }
+      }
     } catch (e: any) {
       console.error("Fetch error: ", e);
       setFetchError(e.message);
@@ -99,7 +114,7 @@ const App: React.FC = () => {
     Swal.fire({
       title: 'เข้าสู่ระบบสำหรับครู',
       input: 'password',
-      inputPlaceholder: '*****',
+      inputPlaceholder: 'รหัสผ่าน 2521',
       showCancelButton: true,
       confirmButtonText: 'เข้าสู่ระบบ',
       inputValidator: (value) => {
@@ -138,7 +153,7 @@ const App: React.FC = () => {
       case 'home':
         return <Home students={students} attendance={attendance} announcements={announcements} />;
       case 'register':
-        return <Registration students={students} setStudents={setStudents} refreshData={() => fetchData(true)} />;
+        return <Registration students={students} setStudents={setStudents} refreshData={() => fetchData(true)} admissionLimit={admissionLimit} />;
       case 'submit':
         return <SubmissionTab students={students} assignments={assignments} submissions={submissions} setSubmissions={setSubmissions} refreshData={() => fetchData(true)} />;
       case 'attendance':
@@ -152,6 +167,8 @@ const App: React.FC = () => {
             assignments={assignments} setAssignments={setAssignments}
             submissions={submissions} setSubmissions={setSubmissions}
             refreshData={() => fetchData(true)}
+            admissionLimit={admissionLimit}
+            setAdmissionLimit={setAdmissionLimit}
           />
         );
     }
