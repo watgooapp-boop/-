@@ -19,6 +19,8 @@ interface SettingsProps {
   refreshData?: () => Promise<void>;
   admissionLimit?: number;
   setAdmissionLimit?: (limit: number) => void;
+  admissionTier?: 'all' | 'junior' | 'senior';
+  setAdmissionTier?: (tier: 'all' | 'junior' | 'senior') => void;
 }
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUJc_m_c-SlsbiIOj4-lD6a7_VTorepqPpvdwS-jDssWTq5t_8QEPHWvBVk8DwqYc9/exec';
@@ -30,13 +32,16 @@ const Settings: React.FC<SettingsProps> = ({
   submissions, setSubmissions,
   refreshData,
   admissionLimit = 40,
-  setAdmissionLimit
+  setAdmissionLimit,
+  admissionTier = 'all',
+  setAdmissionTier
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'students' | 'admission' | 'announcements' | 'assignments' | 'grading'>('students');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterAssignmentId, setFilterAssignmentId] = useState<string>('all');
   
   const [tempLimit, setTempLimit] = useState<number>(admissionLimit);
+  const [tempTier, setTempTier] = useState<'all' | 'junior' | 'senior'>(admissionTier);
 
   React.useEffect(() => {
     if (admissionLimit) {
@@ -44,18 +49,31 @@ const Settings: React.FC<SettingsProps> = ({
     }
   }, [admissionLimit]);
 
-  const handleSaveAdmissionLimit = async () => {
-    if (!setAdmissionLimit) return;
+  React.useEffect(() => {
+    if (admissionTier) {
+      setTempTier(admissionTier);
+    }
+  }, [admissionTier]);
+
+  const handleSaveAdmissionSettings = async () => {
+    if (!setAdmissionLimit || !setAdmissionTier) return;
     setIsSubmitting(true);
     Swal.fire({ title: 'กำลังปรับปรุงข้อมูลกำหนดรับสมัคร...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     
     try {
       setAdmissionLimit(tempLimit);
+      setAdmissionTier(tempTier);
       localStorage.setItem('admission_limit', tempLimit.toString());
+      localStorage.setItem('admission_tier', tempTier);
       
       await syncToCloud('save_config', {
         key: 'admission_limit',
         value: tempLimit.toString()
+      });
+      
+      await syncToCloud('save_config', {
+        key: 'admission_tier',
+        value: tempTier
       });
       
       if (refreshData) await refreshData();
@@ -63,7 +81,7 @@ const Settings: React.FC<SettingsProps> = ({
       Swal.fire({
         icon: 'success',
         title: 'บันทึกสำเร็จ',
-        text: `ปรับปรุงกำหนดการรับสมัครนักเรียนใหม่เป็น ${tempLimit} คน เรียบร้อยแล้ว`,
+        text: `ปรับปรุงตั้งค่าการรับสมัครเป็นจำนวนรับ ${tempLimit} คน เรียบร้อยแล้ว`,
         timer: 2000,
         showConfirmButton: false
       });
@@ -364,6 +382,7 @@ const Settings: React.FC<SettingsProps> = ({
             </h2>
 
             <div className="space-y-6">
+              {/* ยอดรวมลงทะเบียน */}
               <div className="bg-slate-50 border rounded-2xl p-4 flex items-center justify-between">
                 <div>
                   <p className="font-bold text-gray-800 text-sm">จำนวนนักเรียนที่ลงทะเบียนปัจจุบัน</p>
@@ -375,35 +394,50 @@ const Settings: React.FC<SettingsProps> = ({
                 </div>
               </div>
 
+              {/* กำหนดจำนวนรับสูงสุด */}
               <div className="space-y-2">
                 <label className="block text-xs font-black text-indigo-900 uppercase tracking-widest ml-1">
                   กำหนดจำนวนรับสมัครสูงสุด (คน)
                 </label>
-                <div className="flex gap-2">
-                  <input 
-                    type="number" 
-                    min={1}
-                    max={500}
-                    value={tempLimit}
-                    onChange={(e) => setTempLimit(Math.max(1, parseInt(e.target.value) || 1))}
-                    disabled={isSubmitting}
-                    className="flex-grow px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-gray-700 transition-all shadow-inner"
-                  />
-                  <button 
-                    onClick={handleSaveAdmissionLimit}
-                    disabled={isSubmitting}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-8 py-3 rounded-xl shadow-md cursor-pointer transition-all active:scale-95 text-sm uppercase tracking-wide flex items-center gap-2"
-                  >
-                    {isSubmitting ? (
-                      <><i className="fas fa-circle-notch animate-spin"></i> บันทึก...</>
-                    ) : (
-                      <><i className="fas fa-save"></i> บันทึกข้อมูล</>
-                    )}
-                  </button>
-                </div>
+                <input 
+                  type="number" 
+                  min={1}
+                  max={500}
+                  value={tempLimit}
+                  onChange={(e) => setTempLimit(Math.max(1, parseInt(e.target.value) || 1))}
+                  disabled={isSubmitting}
+                  className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-gray-700 transition-all shadow-inner"
+                />
                 <p className="text-[11px] text-gray-400 font-medium ml-1">
                   เมื่อนักเรียนลงทะเบียนถึงหรือเกินโควตานี้ ระบบลงทะเบียนจะทำการปิดรับสมาชิกโดยอัตโนมัติทันที
                 </p>
+              </div>
+
+              {/* ระดับชั้นที่เปิดรับสมัคร */}
+              <div className="space-y-2">
+                <label className="block text-xs font-black text-indigo-900 uppercase tracking-widest ml-1">
+                  กลุ่มระดับชั้นที่เปิดรับสมัคร
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[
+                    { id: 'all', title: 'ทั้งหมด', desc: 'ม.ต้น และ ม.ปลาย (ม.1 - ม.6)', icon: 'fa-graduation-cap', color: 'border-indigo-500 bg-indigo-50/30 text-indigo-900' },
+                    { id: 'junior', title: 'เฉพาะ ม.ต้น', desc: 'ม.1 - ม.3 เท่านั้น', icon: 'fa-child', color: 'border-blue-500 bg-blue-50/30 text-blue-900' },
+                    { id: 'senior', title: 'เฉพาะ ม.ปลาย', desc: 'ม.4 - ม.6 เท่านั้น', icon: 'fa-user-graduate', color: 'border-purple-500 bg-purple-50/30 text-purple-900' }
+                  ].map(tier => (
+                    <button
+                      key={tier.id}
+                      type="button"
+                      onClick={() => setTempTier(tier.id as any)}
+                      className={`p-4 rounded-xl border-2 text-left transition-all relative flex flex-col justify-between h-28 cursor-pointer ${tempTier === tier.id ? `${tier.color} ring-2 ring-indigo-500 shadow-sm font-bold` : 'border-slate-200 bg-white text-gray-600 hover:border-indigo-200'}`}
+                    >
+                      <div className="flex justify-between items-center w-full">
+                        <span className="font-extrabold text-sm">{tier.title}</span>
+                        <i className={`fas ${tier.icon} opacity-60 text-base`}></i>
+                      </div>
+                      <p className="text-[10px] font-semibold opacity-75 mt-auto leading-relaxed">{tier.desc}</p>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* ความคืบหน้าโควตาการรับสมัคร */}
@@ -418,6 +452,21 @@ const Settings: React.FC<SettingsProps> = ({
                     style={{ width: `${Math.min(100, (students.length / (admissionLimit || 40)) * 100)}%` }}
                   ></div>
                 </div>
+              </div>
+
+              {/* ปุ่มบันทึกข้อมูล */}
+              <div className="pt-4 flex justify-end">
+                <button 
+                  onClick={handleSaveAdmissionSettings}
+                  disabled={isSubmitting}
+                  className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-black px-12 py-3.5 rounded-xl shadow-md cursor-pointer transition-all active:scale-95 text-sm uppercase tracking-wide flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    <><i className="fas fa-circle-notch animate-spin"></i> บันทึกข้อมูล...</>
+                  ) : (
+                    <><i className="fas fa-save"></i> บันทึกตั้งค่าการรับสมัคร</>
+                  )}
+                </button>
               </div>
             </div>
           </div>
