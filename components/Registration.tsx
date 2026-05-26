@@ -93,7 +93,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
         showConfirmButton: false 
       });
       
-      setFormData({ id: '', name: '', level: 'ม.1', room: 1 });
+      setFormData({ id: '', name: '', level: admissionTier === 'senior' ? 'ม.4' : 'ม.1', room: 1 });
     } catch (error) {
       Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้' });
     } finally {
