@@ -7,11 +7,12 @@ interface RegistrationProps {
   students: Student[];
   setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
   refreshData?: () => Promise<void>;
+  admissionLimit?: number;
 }
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUJc_m_c-SlsbiIOj4-lD6a7_VTorepqPpvdwS-jDssWTq5t_8QEPHWvBVk8DwqYc9/exec';
 
-const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refreshData }) => {
+const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refreshData, admissionLimit = 40 }) => {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -21,8 +22,19 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
+  const isLimitReached = students.length >= admissionLimit;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (isLimitReached) {
+      Swal.fire({
+        icon: 'error',
+        title: 'ลงทะเบียนไม่สำเร็จ',
+        text: `ขณะนี้ระบบปิดรับลงทะเบียนชั่วคราวเนื่องจากนักเรียนลงทะเบียนเต็มแล้ว (${students.length}/${admissionLimit} คน)`
+      });
+      return;
+    }
     
     if (formData.id.length !== 5) {
       Swal.fire({ icon: 'error', title: 'ข้อมูลผิดพลาด', text: 'เลขประจำตัวต้องมี 5 หลักเท่านั้น' });
@@ -117,7 +129,22 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
         <div className="bg-gradient-to-r from-indigo-600 to-indigo-800 p-6 text-white text-center">
           <h2 className="text-2xl font-black tracking-tight uppercase">ลงทะเบียนเข้าชุมนุม</h2>
           <p className="text-indigo-100 opacity-80 text-[10px] mt-1 font-bold uppercase tracking-[0.2em]">โรงเรียนหนองบัวแดงวิทยา</p>
+          <div className="mt-3 inline-block bg-white/20 px-4 py-1.5 rounded-full text-xs font-black tracking-wider shadow-sm border border-white/10 uppercase">
+            ความจุชุมนุม: <span className="text-yellow-300 font-extrabold">{students.length} / {admissionLimit} คน</span>
+          </div>
         </div>
+
+        {isLimitReached && (
+          <div className="mx-8 mt-6 p-5 bg-rose-50 border-2 border-rose-200 rounded-3xl flex items-center gap-4 text-rose-800 animate-pulse">
+            <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-white text-xl shadow-md flex-shrink-0">
+              <i className="fas fa-ban"></i>
+            </div>
+            <div>
+              <h4 className="font-black text-base">ปิดระบบลงทะเบียนชั่วคราว</h4>
+              <p className="text-xs font-semibold opacity-90 mt-0.5">ขณะนี้ผู้สมัครเต็มจำนวนตามกำหนดรับแล้ว ({students.length} / {admissionLimit} คน) กรุณาติดต่อครูที่ปรึกษาหรือปรับเปลี่ยนการตั้งค่า</p>
+            </div>
+          </div>
+        )}
         
         <form onSubmit={handleSubmit} className="p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -127,11 +154,11 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
                 type="text" 
                 maxLength={5}
                 required
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLimitReached}
                 value={formData.id}
                 onChange={(e) => setFormData({...formData, id: e.target.value.replace(/\D/g, '')})}
-                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-lg text-indigo-700 transition-all placeholder:text-gray-300 shadow-inner"
-                placeholder="00000"
+                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-lg text-indigo-700 transition-all placeholder:text-gray-300 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder={isLimitReached ? "ปิดการใช้งาน" : "00000"}
               />
             </div>
             <div className="md:col-span-2">
@@ -139,20 +166,20 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
               <input 
                 type="text" 
                 required
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLimitReached}
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 transition-all shadow-inner"
-                placeholder="กรอกชื่อและนามสกุล"
+                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                placeholder={isLimitReached ? "ปิดการใช้งาน" : "กรอกชื่อและนามสกุล"}
               />
             </div>
             <div>
               <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">ระดับชั้น</label>
                 <select 
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isLimitReached}
                   value={formData.level}
                   onChange={(e) => setFormData({...formData, level: e.target.value})}
-                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner"
+                  className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <option value="ม.1">ม.1</option>
                   <option value="ม.2">ม.2</option>
@@ -165,10 +192,10 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
             <div>
               <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">ห้องเรียน</label>
               <select 
-                disabled={isSubmitting}
+                disabled={isSubmitting || isLimitReached}
                 value={formData.room}
                 onChange={(e) => setFormData({...formData, room: parseInt(e.target.value)})}
-                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner"
+                className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
                   <option key={num} value={num}>ห้อง {num}</option>
@@ -178,10 +205,16 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
           </div>
           <button 
             type="submit"
-            disabled={isSubmitting}
-            className={`w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3 text-sm uppercase tracking-widest ${isSubmitting ? 'opacity-50 cursor-not-allowed' : 'shadow-indigo-100'}`}
+            disabled={isSubmitting || isLimitReached}
+            className={`w-full font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3 text-sm uppercase tracking-widest ${isSubmitting ? 'bg-indigo-600 text-white opacity-50 cursor-not-allowed shadow-indigo-100' : isLimitReached ? 'bg-rose-500 text-white cursor-not-allowed hover:bg-rose-500 shadow-none' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-100'}`}
           >
-            {isSubmitting ? <><i className="fas fa-spinner animate-spin"></i> กำลังบันทึกข้อมูล...</> : <><i className="fas fa-user-plus"></i> ลงทะเบียนเข้าชุมนุม</>}
+            {isSubmitting ? (
+              <><i className="fas fa-spinner animate-spin"></i> กำลังบันทึกข้อมูล...</>
+            ) : isLimitReached ? (
+              <><i className="fas fa-ban"></i> ขออภัย! ปัจจุบันยอดรับสมัครครบเต็มจำนวนแล้ว</>
+            ) : (
+              <><i className="fas fa-user-plus"></i> ลงทะเบียนเข้าชุมนุม</>
+            )}
           </button>
         </form>
       </div>
