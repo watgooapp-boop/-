@@ -145,6 +145,7 @@ const Settings: React.FC<SettingsProps> = ({
     if (result.isConfirmed) {
       setIsSubmitting(true);
       setStudents(prev => prev.filter(s => s.id !== id));
+      setSubmissions(prev => prev.filter(s => String(s.studentId).trim() !== String(id).trim()));
       await syncToCloud('delete_student', { id });
       if (refreshData) await refreshData();
       setIsSubmitting(false);
