@@ -8,17 +8,27 @@ interface RegistrationProps {
   setStudents: React.Dispatch<React.SetStateAction<Student[]>>;
   refreshData?: () => Promise<void>;
   admissionLimit?: number;
+  admissionTier?: 'all' | 'junior' | 'senior';
 }
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUJc_m_c-SlsbiIOj4-lD6a7_VTorepqPpvdwS-jDssWTq5t_8QEPHWvBVk8DwqYc9/exec';
 
-const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refreshData, admissionLimit = 40 }) => {
+const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refreshData, admissionLimit = 40, admissionTier = 'all' }) => {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
     level: 'ม.1',
     room: 1
   });
+
+  React.useEffect(() => {
+    if (admissionTier === 'senior') {
+      setFormData(prev => ({ ...prev, level: 'ม.4' }));
+    } else {
+      setFormData(prev => ({ ...prev, level: 'ม.1' }));
+    }
+  }, [admissionTier]);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
 
@@ -181,12 +191,30 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
                   onChange={(e) => setFormData({...formData, level: e.target.value})}
                   className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <option value="ม.1">ม.1</option>
-                  <option value="ม.2">ม.2</option>
-                  <option value="ม.3">ม.3</option>
-                  <option value="ม.4">ม.4</option>
-                  <option value="ม.5">ม.5</option>
-                  <option value="ม.6">ม.6</option>
+                  {admissionTier === 'junior' && (
+                    <>
+                      <option value="ม.1">ม.1</option>
+                      <option value="ม.2">ม.2</option>
+                      <option value="ม.3">ม.3</option>
+                    </>
+                  )}
+                  {admissionTier === 'senior' && (
+                    <>
+                      <option value="ม.4">ม.4</option>
+                      <option value="ม.5">ม.5</option>
+                      <option value="ม.6">ม.6</option>
+                    </>
+                  )}
+                  {admissionTier === 'all' && (
+                    <>
+                      <option value="ม.1">ม.1</option>
+                      <option value="ม.2">ม.2</option>
+                      <option value="ม.3">ม.3</option>
+                      <option value="ม.4">ม.4</option>
+                      <option value="ม.5">ม.5</option>
+                      <option value="ม.6">ม.6</option>
+                    </>
+                  )}
                 </select>
             </div>
             <div>
