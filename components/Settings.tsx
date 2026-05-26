@@ -17,6 +17,8 @@ interface SettingsProps {
   submissions: Submission[];
   setSubmissions: React.Dispatch<React.SetStateAction<Submission[]>>;
   refreshData?: () => Promise<void>;
+  admissionLimit?: number;
+  setAdmissionLimit?: (limit: number) => void;
 }
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUJc_m_c-SlsbiIOj4-lD6a7_VTorepqPpvdwS-jDssWTq5t_8QEPHWvBVk8DwqYc9/exec';
@@ -26,11 +28,51 @@ const Settings: React.FC<SettingsProps> = ({
   announcements, setAnnouncements, 
   assignments, setAssignments,
   submissions, setSubmissions,
-  refreshData
+  refreshData,
+  admissionLimit = 40,
+  setAdmissionLimit
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'students' | 'announcements' | 'assignments' | 'grading'>('students');
+  const [activeSubTab, setActiveSubTab] = useState<'students' | 'admission' | 'announcements' | 'assignments' | 'grading'>('students');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filterAssignmentId, setFilterAssignmentId] = useState<string>('all');
+  
+  const [tempLimit, setTempLimit] = useState<number>(admissionLimit);
+
+  React.useEffect(() => {
+    if (admissionLimit) {
+      setTempLimit(admissionLimit);
+    }
+  }, [admissionLimit]);
+
+  const handleSaveAdmissionLimit = async () => {
+    if (!setAdmissionLimit) return;
+    setIsSubmitting(true);
+    Swal.fire({ title: 'กำลังปรับปรุงข้อมูลกำหนดรับสมัคร...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+    
+    try {
+      setAdmissionLimit(tempLimit);
+      localStorage.setItem('admission_limit', tempLimit.toString());
+      
+      await syncToCloud('save_config', {
+        key: 'admission_limit',
+        value: tempLimit.toString()
+      });
+      
+      if (refreshData) await refreshData();
+      
+      Swal.fire({
+        icon: 'success',
+        title: 'บันทึกสำเร็จ',
+        text: `ปรับปรุงกำหนดการรับสมัครนักเรียนใหม่เป็น ${tempLimit} คน เรียบร้อยแล้ว`,
+        timer: 2000,
+        showConfirmButton: false
+      });
+    } catch (e) {
+      Swal.fire({ icon: 'error', title: 'ผิดพลาด', text: 'ไม่สามารถบันทึกข้อมูลโควตาลง Cloud ได้' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   
   const [editingStudent, setEditingStudent] = useState<{originalId: string, data: Student} | null>(null);
   const [editingAnn, setEditingAnn] = useState<Announcement | null>(null);
@@ -240,6 +282,7 @@ const Settings: React.FC<SettingsProps> = ({
       <aside className="w-full md:w-64 space-y-2">
         {[
           { id: 'students', label: 'ข้อมูลนักเรียน', icon: 'fa-users' },
+          { id: 'admission', label: 'การรับนักเรียน', icon: 'fa-user-cog' },
           { id: 'announcements', label: 'จัดการประกาศ', icon: 'fa-bullhorn' },
           { id: 'assignments', label: 'จัดการชิ้นงาน', icon: 'fa-tasks' },
           { id: 'grading', label: 'ตรวจงานนักเรียน', icon: 'fa-clipboard-check' }
@@ -308,6 +351,73 @@ const Settings: React.FC<SettingsProps> = ({
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        )}
+
+        {activeSubTab === 'admission' && (
+          <div className="bg-white rounded-2xl shadow-sm border p-6 max-w-2xl animate-fade-in">
+            <h2 className="text-xl font-bold mb-6 text-indigo-900 border-b pb-4 flex items-center gap-2">
+              <i className="fas fa-user-cog text-indigo-600"></i>
+              <span>ตั้งค่าการรับสมัครนักเรียน (Admission Control)</span>
+            </h2>
+
+            <div className="space-y-6">
+              <div className="bg-slate-50 border rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-gray-800 text-sm">จำนวนนักเรียนที่ลงทะเบียนปัจจุบัน</p>
+                  <p className="text-xs text-gray-500 mt-1">ยอดลงทะเบียนรวมปัจจุบันในชุมนุม</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-black text-indigo-600">{students.length}</span>
+                  <span className="text-xs text-gray-400 font-bold ml-1">คน</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-black text-indigo-900 uppercase tracking-widest ml-1">
+                  กำหนดจำนวนรับสมัครสูงสุด (คน)
+                </label>
+                <div className="flex gap-2">
+                  <input 
+                    type="number" 
+                    min={1}
+                    max={500}
+                    value={tempLimit}
+                    onChange={(e) => setTempLimit(Math.max(1, parseInt(e.target.value) || 1))}
+                    disabled={isSubmitting}
+                    className="flex-grow px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-gray-700 transition-all shadow-inner"
+                  />
+                  <button 
+                    onClick={handleSaveAdmissionLimit}
+                    disabled={isSubmitting}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-8 py-3 rounded-xl shadow-md cursor-pointer transition-all active:scale-95 text-sm uppercase tracking-wide flex items-center gap-2"
+                  >
+                    {isSubmitting ? (
+                      <><i className="fas fa-circle-notch animate-spin"></i> บันทึก...</>
+                    ) : (
+                      <><i className="fas fa-save"></i> บันทึกข้อมูล</>
+                    )}
+                  </button>
+                </div>
+                <p className="text-[11px] text-gray-400 font-medium ml-1">
+                  เมื่อนักเรียนลงทะเบียนถึงหรือเกินโควตานี้ ระบบลงทะเบียนจะทำการปิดรับสมาชิกโดยอัตโนมัติทันที
+                </p>
+              </div>
+
+              {/* ความคืบหน้าโควตาการรับสมัคร */}
+              <div className="pt-4 border-t">
+                <div className="flex justify-between text-xs font-bold text-gray-500 mb-2">
+                  <span>ความจุในปัจจุบัน: {Math.round((students.length / (admissionLimit || 40)) * 100)}%</span>
+                  <span>{students.length} / {admissionLimit || 40} คน</span>
+                </div>
+                <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-500 ${students.length >= (admissionLimit || 40) ? 'bg-rose-500' : 'bg-indigo-600'}`}
+                    style={{ width: `${Math.min(100, (students.length / (admissionLimit || 40)) * 100)}%` }}
+                  ></div>
+                </div>
+              </div>
             </div>
           </div>
         )}
