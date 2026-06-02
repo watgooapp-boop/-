@@ -21,6 +21,8 @@ interface SettingsProps {
   setAdmissionLimit?: (limit: number) => void;
   admissionTier?: 'all' | 'junior' | 'senior';
   setAdmissionTier?: (tier: 'all' | 'junior' | 'senior') => void;
+  admissionOpen?: boolean;
+  setAdmissionOpen?: (open: boolean) => void;
 }
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUJc_m_c-SlsbiIOj4-lD6a7_VTorepqPpvdwS-jDssWTq5t_8QEPHWvBVk8DwqYc9/exec';
@@ -34,7 +36,9 @@ const Settings: React.FC<SettingsProps> = ({
   admissionLimit = 40,
   setAdmissionLimit,
   admissionTier = 'all',
-  setAdmissionTier
+  setAdmissionTier,
+  admissionOpen = true,
+  setAdmissionOpen
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'students' | 'admission' | 'announcements' | 'assignments' | 'grading'>('students');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,6 +46,7 @@ const Settings: React.FC<SettingsProps> = ({
   
   const [tempLimit, setTempLimit] = useState<number>(admissionLimit);
   const [tempTier, setTempTier] = useState<'all' | 'junior' | 'senior'>(admissionTier);
+  const [tempOpen, setTempOpen] = useState<boolean>(admissionOpen);
 
   React.useEffect(() => {
     if (admissionLimit) {
@@ -55,16 +60,24 @@ const Settings: React.FC<SettingsProps> = ({
     }
   }, [admissionTier]);
 
+  React.useEffect(() => {
+    if (admissionOpen !== undefined) {
+      setTempOpen(admissionOpen);
+    }
+  }, [admissionOpen]);
+
   const handleSaveAdmissionSettings = async () => {
-    if (!setAdmissionLimit || !setAdmissionTier) return;
+    if (!setAdmissionLimit || !setAdmissionTier || !setAdmissionOpen) return;
     setIsSubmitting(true);
     Swal.fire({ title: 'กำลังปรับปรุงข้อมูลกำหนดรับสมัคร...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
     
     try {
       setAdmissionLimit(tempLimit);
       setAdmissionTier(tempTier);
+      setAdmissionOpen(tempOpen);
       localStorage.setItem('admission_limit', tempLimit.toString());
       localStorage.setItem('admission_tier', tempTier);
+      localStorage.setItem('admission_open', tempOpen ? 'true' : 'false');
       
       await syncToCloud('save_config', {
         key: 'admission_limit',
@@ -75,13 +88,18 @@ const Settings: React.FC<SettingsProps> = ({
         key: 'admission_tier',
         value: tempTier
       });
+
+      await syncToCloud('save_config', {
+        key: 'admission_open',
+        value: tempOpen ? 'true' : 'false'
+      });
       
       if (refreshData) await refreshData();
       
       Swal.fire({
         icon: 'success',
         title: 'บันทึกสำเร็จ',
-        text: `ปรับปรุงตั้งค่าการรับสมัครเป็นจำนวนรับ ${tempLimit} คน เรียบร้อยแล้ว`,
+        text: `ปรับปรุงตั้งค่าการรับสมัครเรียบร้อยแล้ว`,
         timer: 2000,
         showConfirmButton: false
       });
@@ -456,6 +474,36 @@ const Settings: React.FC<SettingsProps> = ({
                 <div className="text-right">
                   <span className="text-2xl font-black text-indigo-600">{students.length}</span>
                   <span className="text-xs text-gray-400 font-bold ml-1">คน</span>
+                </div>
+              </div>
+
+              {/* ปิด-เปิดการรับสมัคร */}
+              <div className="bg-slate-50 border rounded-2xl p-4 flex items-center justify-between">
+                <div>
+                  <p className="font-bold text-gray-800 text-sm">สถานะระบบเปิด-ปิดรับสมัครนักเรียน</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {tempOpen ? 'ระบบกำลังเปิดรับสมัครนักเรียนตามปกติ' : 'ระบบกำลังปิดการรับสมัครชั่วคราว'}
+                  </p>
+                </div>
+                <div className="flex items-center">
+                  <button
+                    type="button"
+                    onClick={() => setTempOpen(!tempOpen)}
+                    style={{ transition: 'background-color 200ms' }}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      tempOpen ? 'bg-emerald-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      style={{ transition: 'transform 200ms' }}
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        tempOpen ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                  <span className={`ml-3 text-sm font-bold min-w-[70px] ${tempOpen ? 'text-emerald-600' : 'text-rose-500'}`}>
+                    {tempOpen ? 'เปิด (Open)' : 'ปิด (Closed)'}
+                  </span>
                 </div>
               </div>
 
