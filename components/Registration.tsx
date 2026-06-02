@@ -9,11 +9,12 @@ interface RegistrationProps {
   refreshData?: () => Promise<void>;
   admissionLimit?: number;
   admissionTier?: 'all' | 'junior' | 'senior';
+  admissionOpen?: boolean;
 }
 
 const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwUJc_m_c-SlsbiIOj4-lD6a7_VTorepqPpvdwS-jDssWTq5t_8QEPHWvBVk8DwqYc9/exec';
 
-const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refreshData, admissionLimit = 40, admissionTier = 'all' }) => {
+const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refreshData, admissionLimit = 40, admissionTier = 'all', admissionOpen = true }) => {
   const [formData, setFormData] = useState({
     id: '',
     name: '',
@@ -33,9 +34,19 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
   const [showPreview, setShowPreview] = useState(false);
 
   const isLimitReached = students.length >= admissionLimit;
+  const isRegistrationClosed = !admissionOpen || isLimitReached;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!admissionOpen) {
+      Swal.fire({
+        icon: 'error',
+        title: 'ลงทะเบียนไม่สำเร็จ',
+        text: 'ขออภัย! ขณะนี้ระบบรับสมัครปิดใช้งานโดยผู้ดูแลระบบ'
+      });
+      return;
+    }
 
     if (isLimitReached) {
       Swal.fire({
@@ -202,7 +213,19 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
           </div>
         </div>
 
-        {isLimitReached && (
+        {!admissionOpen && (
+          <div className="mx-8 mt-6 p-5 bg-rose-50 border-2 border-rose-200 rounded-3xl flex items-center gap-4 text-rose-800 animate-pulse">
+            <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-white text-xl shadow-md flex-shrink-0">
+              <i className="fas fa-ban"></i>
+            </div>
+            <div>
+              <h4 className="font-black text-base">ปิดระบบรับสมัครชั่วคราว</h4>
+              <p className="text-xs font-semibold opacity-90 mt-0.5">ผู้ดูแลระบบได้ทำการปิดระบบการรับสมัครชั่วคราว กรุณาติดต่อหน่วยงานหรือครูที่รับผิดชอบเพื่อขอข้อมูลเพิ่มเติม</p>
+            </div>
+          </div>
+        )}
+
+        {admissionOpen && isLimitReached && (
           <div className="mx-8 mt-6 p-5 bg-rose-50 border-2 border-rose-200 rounded-3xl flex items-center gap-4 text-rose-800 animate-pulse">
             <div className="w-12 h-12 bg-rose-500 rounded-2xl flex items-center justify-center text-white text-xl shadow-md flex-shrink-0">
               <i className="fas fa-ban"></i>
@@ -222,11 +245,11 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
                 type="text" 
                 maxLength={5}
                 required
-                disabled={isSubmitting || isLimitReached}
+                disabled={isSubmitting || isRegistrationClosed}
                 value={formData.id}
                 onChange={(e) => setFormData({...formData, id: e.target.value.replace(/\D/g, '')})}
                 className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-lg text-indigo-700 transition-all placeholder:text-gray-300 shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder={isLimitReached ? "ปิดการใช้งาน" : "00000"}
+                placeholder={isRegistrationClosed ? "ปิดการใช้งาน" : "00000"}
               />
             </div>
             <div className="md:col-span-2">
@@ -234,17 +257,17 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
               <input 
                 type="text" 
                 required
-                disabled={isSubmitting || isLimitReached}
+                disabled={isSubmitting || isRegistrationClosed}
                 value={formData.name}
                 onChange={(e) => setFormData({...formData, name: e.target.value})}
                 className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 transition-all shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder={isLimitReached ? "ปิดการใช้งาน" : "กรอกชื่อและนามสกุล"}
+                placeholder={isRegistrationClosed ? "ปิดการใช้งาน" : "กรอกชื่อและนามสกุล"}
               />
             </div>
             <div>
               <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">ระดับชั้น</label>
                 <select 
-                  disabled={isSubmitting || isLimitReached}
+                  disabled={isSubmitting || isRegistrationClosed}
                   value={formData.level}
                   onChange={(e) => setFormData({...formData, level: e.target.value})}
                   className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
@@ -278,7 +301,7 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
             <div>
               <label className="block text-xs font-black text-indigo-900 mb-2 ml-1 uppercase tracking-widest">ห้องเรียน</label>
               <select 
-                disabled={isSubmitting || isLimitReached}
+                disabled={isSubmitting || isRegistrationClosed}
                 value={formData.room}
                 onChange={(e) => setFormData({...formData, room: parseInt(e.target.value)})}
                 className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:bg-white outline-none font-bold text-base text-gray-700 appearance-none shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
@@ -291,11 +314,13 @@ const Registration: React.FC<RegistrationProps> = ({ students, setStudents, refr
           </div>
           <button 
             type="submit"
-            disabled={isSubmitting || isLimitReached}
-            className={`w-full font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3 text-sm uppercase tracking-widest ${isSubmitting ? 'bg-indigo-600 text-white opacity-50 cursor-not-allowed shadow-indigo-100' : isLimitReached ? 'bg-rose-500 text-white cursor-not-allowed hover:bg-rose-500 shadow-none' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-100'}`}
+            disabled={isSubmitting || isRegistrationClosed}
+            className={`w-full font-black py-4 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3 text-sm uppercase tracking-widest ${isSubmitting ? 'bg-indigo-600 text-white opacity-50 cursor-not-allowed shadow-indigo-100' : isRegistrationClosed ? 'bg-rose-500 text-white cursor-not-allowed hover:bg-rose-500 shadow-none' : 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-indigo-100'}`}
           >
             {isSubmitting ? (
               <><i className="fas fa-spinner animate-spin"></i> กำลังบันทึกข้อมูล...</>
+            ) : !admissionOpen ? (
+              <><i className="fas fa-ban"></i> ขออภัย! ปัจจุบันระบบปิดรับลงทะเบียนชั่วคราวโดยผู้ดูแล</>
             ) : isLimitReached ? (
               <><i className="fas fa-ban"></i> ขออภัย! ปัจจุบันยอดรับสมัครครบเต็มจำนวนแล้ว</>
             ) : (
