@@ -29,6 +29,10 @@ const App: React.FC = () => {
     const localVal = localStorage.getItem('admission_tier');
     return (localVal === 'junior' || localVal === 'senior' || localVal === 'all') ? localVal : 'all';
   });
+  const [admissionOpen, setAdmissionOpen] = useState<boolean>(() => {
+    const localVal = localStorage.getItem('admission_open');
+    return localVal !== 'false';
+  });
 
   const [isTeacherAuthenticated, setIsTeacherAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -105,6 +109,12 @@ const App: React.FC = () => {
             localStorage.setItem('admission_tier', val);
           }
         }
+        const openConfig = data.config.find((c: any) => c.key === 'admission_open');
+        if (openConfig) {
+          const val = openConfig.value !== 'false';
+          setAdmissionOpen(val);
+          localStorage.setItem('admission_open', val ? 'true' : 'false');
+        }
       }
     } catch (e: any) {
       console.error("Fetch error: ", e);
@@ -165,7 +175,7 @@ const App: React.FC = () => {
       case 'home':
         return <Home students={students} attendance={attendance} announcements={announcements} />;
       case 'register':
-        return <Registration students={students} setStudents={setStudents} refreshData={() => fetchData(true)} admissionLimit={admissionLimit} admissionTier={admissionTier} />;
+        return <Registration students={students} setStudents={setStudents} refreshData={() => fetchData(true)} admissionLimit={admissionLimit} admissionTier={admissionTier} admissionOpen={admissionOpen} />;
       case 'submit':
         return <SubmissionTab students={students} assignments={assignments} submissions={submissions} setSubmissions={setSubmissions} refreshData={() => fetchData(true)} />;
       case 'attendance':
@@ -183,6 +193,8 @@ const App: React.FC = () => {
             setAdmissionLimit={setAdmissionLimit}
             admissionTier={admissionTier}
             setAdmissionTier={setAdmissionTier}
+            admissionOpen={admissionOpen}
+            setAdmissionOpen={setAdmissionOpen}
           />
         );
     }
